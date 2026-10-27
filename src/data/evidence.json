@@ -1,11 +1,213 @@
 {
-  "//": "画面の「根拠」に出す一次資料。TODO: bib.json から差し替え(本の参考文献が確定したら id を bib の番号に揃える)。URL は実在する一次資料のみ",
+  "//": "画面の「根拠」に出す一次資料。bib は本『AIトランスフォーメーションの設計図』付録B の番号。URL は本文の出典と同じ",
   "items": [
-    { "id": "soumu-r7", "label": "総務省『令和7年版 情報通信白書』生成AIの利用状況", "url": "https://www.soumu.go.jp/johotsusintokei/whitepaper/ja/r07/html/nd112210.html", "publisher": "総務省", "date": "2025-07" },
-    { "id": "mckinsey-2025", "label": "McKinsey, The state of AI (2025)", "url": "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai", "publisher": "McKinsey & Company", "date": "2025" },
-    { "id": "gartner-agentic-2025", "label": "Gartner, 2027 年末までにエージェント型 AI プロジェクトの 40% 超が中止されるとの予測", "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027", "publisher": "Gartner", "date": "2025-06-25" },
-    { "id": "nber-w31161", "label": "Brynjolfsson, Li, Raymond, Generative AI at Work (NBER w31161)", "url": "https://www.nber.org/papers/w31161", "publisher": "NBER", "date": "2023-04" },
-    { "id": "rogers-diffusion", "label": "Rogers, Diffusion of Innovations", "url": "https://openlibrary.org/works/OL2652290W", "publisher": "Free Press", "date": "1962" },
-    { "id": "jcurve", "label": "Brynjolfsson, Rock, Syverson, The Productivity J-Curve (AEJ: Macroeconomics)", "url": "https://www.aeaweb.org/articles?id=10.1257/mac.20180386", "publisher": "American Economic Association", "date": "2021" }
+    {
+      "id": "soumu-r7",
+      "bib": 122,
+      "label": "総務省『令和8年版 情報通信白書』企業における生成AIの利用",
+      "url": "https://www.soumu.go.jp/johotsusintokei/whitepaper/ja/r08/pdf/n1210000.pdf",
+      "publisher": "総務省",
+      "date": "2026-07"
+    },
+    {
+      "id": "soumu-r8-summary",
+      "bib": 107,
+      "label": "総務省『令和8年版 情報通信白書』概要(個人の利用率 58.8%)",
+      "url": "https://www.soumu.go.jp/main_content/001082851.pdf",
+      "publisher": "総務省",
+      "date": "2026-07-24"
+    },
+    {
+      "id": "tdb-2026",
+      "bib": 125,
+      "label": "帝国データバンク「生成AIに関する企業の動向調査(2026年3月)」",
+      "url": "https://www.tdb.co.jp/report/economic/20260514-genai",
+      "publisher": "帝国データバンク",
+      "date": "2026-05-14"
+    },
+    {
+      "id": "ipa-dx-2026",
+      "bib": 124,
+      "label": "IPA「DX動向2026」",
+      "url": "https://www.ipa.go.jp/digital/chousa/dx-trend/rcu1hd0000017uk8-att/dx-trend-2026.pdf",
+      "publisher": "情報処理推進機構",
+      "date": "2026-07-30"
+    },
+    {
+      "id": "mckinsey-2025",
+      "bib": 136,
+      "label": "McKinsey, The state of AI in 2026: On the road to ROI",
+      "url": "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai",
+      "publisher": "McKinsey & Company",
+      "date": "2026-08"
+    },
+    {
+      "id": "mit-nanda",
+      "bib": 177,
+      "label": "MIT NANDA, The GenAI Divide: State of AI in Business 2025",
+      "url": "https://mlq.ai/media/quarterly_decks/v0.1_State_of_AI_in_Business_2025_Report.pdf",
+      "publisher": "MIT NANDA",
+      "date": "2025-08"
+    },
+    {
+      "id": "bcg-value",
+      "bib": 180,
+      "label": "BCG, Are You Generating Value from AI? The Widening Gap",
+      "url": "https://www.bcg.com/publications/2025/are-you-generating-value-from-ai-the-widening-gap",
+      "publisher": "Boston Consulting Group",
+      "date": "2025-09-30"
+    },
+    {
+      "id": "gartner-agentic-2025",
+      "bib": 181,
+      "label": "Gartner, 2027年末までにエージェント型AIプロジェクトの40%超が中止されるとの予測",
+      "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027",
+      "publisher": "Gartner",
+      "date": "2025-06-25"
+    },
+    {
+      "id": "nber-w31161",
+      "bib": 288,
+      "label": "Brynjolfsson, Li, Raymond, Generative AI at Work (QJE)",
+      "url": "https://doi.org/10.1093/qje/qjae044",
+      "publisher": "Quarterly Journal of Economics",
+      "date": "2025"
+    },
+    {
+      "id": "jagged-frontier",
+      "bib": 145,
+      "label": "Dell'Acqua ほか, Navigating the Jagged Technological Frontier",
+      "url": "https://mitsloan.mit.edu/sites/default/files/2023-10/SSRN-id4573321.pdf",
+      "publisher": "Harvard Business School ほか",
+      "date": "2023-09"
+    },
+    {
+      "id": "bick-adoption",
+      "bib": 108,
+      "label": "Bick, Blandin, Deming, The Rapid Adoption of Generative AI (NBER)",
+      "url": "https://www.nber.org/system/files/working_papers/w32966/w32966.pdf",
+      "publisher": "NBER",
+      "date": "2024-09"
+    },
+    {
+      "id": "canaries",
+      "bib": 158,
+      "label": "Brynjolfsson, Chandar, Chen, Canaries in the Coal Mine?",
+      "url": "https://digitaleconomy.stanford.edu/publication/canaries-in-the-coal-mine-six-facts-about-the-recent-employment-effects-of-artificial-intelligence",
+      "publisher": "Stanford Digital Economy Lab",
+      "date": "2025-08"
+    },
+    {
+      "id": "yale-labor",
+      "bib": 161,
+      "label": "The Budget Lab at Yale, Evaluating the Impact of AI on the Labor Market",
+      "url": "https://budgetlab.yale.edu/research/evaluating-impact-ai-labor-market-current-state-affairs",
+      "publisher": "Yale Budget Lab",
+      "date": "2025-10"
+    },
+    {
+      "id": "metr-horizon",
+      "bib": 332,
+      "label": "METR, Measuring AI Ability to Complete Long Tasks",
+      "url": "https://metr.org/blog/2025-03-19-measuring-ai-ability-to-complete-long-tasks",
+      "publisher": "METR",
+      "date": "2025-03-19"
+    },
+    {
+      "id": "ai-plan-2",
+      "bib": 492,
+      "label": "内閣府「人工知能基本計画(第Ⅱ期)」",
+      "url": "https://www8.cao.go.jp/cstp/ai/ai_plan/aiplan_20260714.pdf",
+      "publisher": "内閣府",
+      "date": "2026-07-14"
+    },
+    {
+      "id": "ai-guideline-jp",
+      "bib": 493,
+      "label": "内閣府 人工知能戦略本部「適正性確保に関する指針」",
+      "url": "https://www8.cao.go.jp/cstp/ai/ai_guideline/ai_gl_2025.pdf",
+      "publisher": "内閣府",
+      "date": "2025-12-19"
+    },
+    {
+      "id": "eu-ai-act",
+      "bib": 647,
+      "label": "EU AI Act Implementation Timeline",
+      "url": "https://artificialintelligenceact.eu/implementation-timeline/",
+      "publisher": "Future of Life Institute",
+      "date": "2026"
+    },
+    {
+      "id": "rogers-diffusion",
+      "bib": 246,
+      "label": "Rogers, Diffusion of Innovations",
+      "url": "https://openlibrary.org/works/OL718011W",
+      "publisher": "Free Press",
+      "date": "1962/2003"
+    },
+    {
+      "id": "jcurve",
+      "bib": 259,
+      "label": "Brynjolfsson, Rock, Syverson, The Productivity J-Curve",
+      "url": "https://doi.org/10.1257/mac.20180386",
+      "publisher": "American Economic Association",
+      "date": "2021"
+    },
+    {
+      "id": "frontier-firm",
+      "bib": 204,
+      "label": "Microsoft Work Trend Index 2025: The Year the Frontier Firm Is Born",
+      "url": "https://www.microsoft.com/en-us/worklab/work-trend-index/2025-the-year-the-frontier-firm-is-born",
+      "publisher": "Microsoft",
+      "date": "2025-04-23"
+    },
+    {
+      "id": "menlo-2025",
+      "bib": 417,
+      "label": "Menlo Ventures, 2025: The State of Generative AI in the Enterprise",
+      "url": "https://menlovc.com/perspective/2025-the-state-of-generative-ai-in-the-enterprise",
+      "publisher": "Menlo Ventures",
+      "date": "2025-12-09"
+    },
+    {
+      "id": "mcp",
+      "bib": 22,
+      "label": "Anthropic, Introducing the Model Context Protocol",
+      "url": "https://www.anthropic.com/news/model-context-protocol",
+      "publisher": "Anthropic",
+      "date": "2024-11-25"
+    },
+    {
+      "id": "kotter",
+      "bib": 292,
+      "label": "Kotter, Leading Change: Why Transformation Efforts Fail",
+      "url": "https://hbr.org/1995/05/leading-change-why-transformation-efforts-fail-2",
+      "publisher": "Harvard Business Review",
+      "date": "1995"
+    },
+    {
+      "id": "edmondson",
+      "bib": 294,
+      "label": "Edmondson, Psychological Safety and Learning Behavior in Work Teams",
+      "url": "https://doi.org/10.2307/2666999",
+      "publisher": "Administrative Science Quarterly",
+      "date": "1999"
+    },
+    {
+      "id": "westrum",
+      "bib": 293,
+      "label": "Westrum, A typology of organisational cultures",
+      "url": "https://doi.org/10.1136/qshc.2003.009522",
+      "publisher": "Quality and Safety in Health Care",
+      "date": "2004"
+    },
+    {
+      "id": "panasonic-connect",
+      "bib": 537,
+      "label": "パナソニック コネクト、AI活用で総労働時間の3.4%削減",
+      "url": "https://news.panasonic.com/jp/press/jn260729-1",
+      "publisher": "パナソニック コネクト",
+      "date": "2026-07-29"
+    }
   ]
 }
