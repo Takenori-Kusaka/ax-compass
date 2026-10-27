@@ -36,6 +36,15 @@
   <EvidenceLinks chapters={['32-three-positions', 'overview-map']} />
 </div>
 
+<div class="card">
+  <h3>会議で使うスライド</h3>
+  <p>
+    本の各章の要点を 1 枚ずつ並べたスライド(PowerPoint 形式、40 枚)を用意しています。最後の 1 枚は、経営会議に出す資料の型(8 つの見出し)です。
+    診断の結果と合わせて、会議の説明に使えます。
+  </p>
+  <p><a class="btn" href={`${import.meta.env.BASE_URL}ax-blueprint-slides.pptx`} download>スライドをダウンロード(約 5MB)</a></p>
+</div>
+
 <div class="note">
   <p>診断は自己申告に基づく目安です。1 つの正解を出す道具ではありません。</p>
   <p>入力は端末のブラウザにだけ保存され、外部へ送信しません。氏名や会社名などの個人情報は入力しない設計です。</p>
