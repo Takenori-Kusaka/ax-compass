@@ -5,7 +5,7 @@ import framework from '../src/data/framework.json' with { type: 'json' };
 import questions from '../src/data/questions.json' with { type: 'json' };
 import concernsData from '../src/data/concerns.json' with { type: 'json' };
 import evidenceData from '../src/data/evidence.json' with { type: 'json' };
-import { buildPlan, concernReport, createState, decodeState, diagnose, encodeState, parseState, scoreBusiness, scoreLevelAxis, toMarkdown } from '../src/lib/engine.mjs';
+import { buildPlan, concernReport, createState, decodeState, diagnose, encodeState, parseState, scoreBusiness, scoreLevelAxis, toMarkdown, weakestAnswers } from '../src/lib/engine.mjs';
 
 const data = { framework, questions, concerns: concernsData.items, evidence: evidenceData.items };
 const axis = (id) => questions.axes.find((a) => a.id === id);
@@ -46,6 +46,16 @@ test('集計の境界: 平均の四捨五入と上限・下限', () => {
   assert.equal(scoreLevelAxis(s, { s1: 1, s2: 6 }).answered, 2);
   const c = axis('culture');
   assert.equal(scoreLevelAxis(c, { c1: 5, c2: 5, c3: 5, c4: 5, c5: 5, c6: 5 }).level, 5);
+});
+
+test('weakestAnswers: 最も低い答えの設問を、同点ならすべて設問の順に返す', () => {
+  const s = axis('adoption');
+  assert.deepEqual(weakestAnswers(s, {}), { level: null, items: [] });
+  const w = weakestAnswers(s, { s1: 3, s2: 1, s3: 4, s4: 1, s5: 2, s6: 5 });
+  assert.equal(w.level, 1);
+  assert.deepEqual(w.items.map((x) => x.question.id), ['s2', 's4']);
+  assert.equal(w.items[0].label, s.questions[1].options[0].label);
+  assert.deepEqual(weakestAnswers(axis('culture'), { c3: 4 }).items.map((x) => x.question.id), ['c3']);
 });
 
 test('事業フェーズ: 多数決と、同数なら最初の設問を優先', () => {

@@ -112,6 +112,25 @@ export function scoreBusiness(axis, answers, phases) {
 }
 
 /**
+ * 数値段階の軸で、最も低い答えの設問を返す。現在地は平均で決めるが、次に上げるべき場所(ボトルネック)は最も低い答えにある。
+ * 同点の設問はすべて返す(設問の順)。未回答の設問は対象にしない。
+ * @param {Axis} axis
+ * @param {Record<string, number>} answers
+ * @returns {{ level: number | null, items: { question: Question, value: number, label: string }[] }}
+ */
+export function weakestAnswers(axis, answers) {
+  const answered = axis.questions
+    .map((q) => ({ q, v: answers[q.id] }))
+    .filter((x) => typeof x.v === 'number' && Number.isFinite(x.v));
+  if (answered.length === 0) return { level: null, items: [] };
+  const min = Math.min(...answered.map((x) => /** @type {number} */ (x.v)));
+  const items = answered
+    .filter((x) => x.v === min)
+    .map((x) => ({ question: x.q, value: min, label: x.q.options.find((o) => o.value === min)?.label ?? '' }));
+  return { level: min, items };
+}
+
+/**
  * @param {Framework} framework
  * @param {QuestionSet} questions
  * @param {Answers} answers

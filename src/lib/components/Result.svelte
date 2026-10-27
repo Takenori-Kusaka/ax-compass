@@ -2,7 +2,7 @@
 <script lang="ts">
   import { app, replaceState } from '../store.svelte';
   import { concerns, data, evidence as allEvidence, framework, questions } from '../data';
-  import { buildPlan, concernReport, diagnose, encodeState, parseState, toMarkdown } from '../engine.mjs';
+  import { buildPlan, concernReport, diagnose, encodeState, parseState, toMarkdown, weakestAnswers } from '../engine.mjs';
   import PositionChart from './PositionChart.svelte';
   import EvidenceLinks from './EvidenceLinks.svelte';
 
@@ -12,6 +12,11 @@
     app.path && diagnosis.adoption.level && diagnosis.culture.level
       ? buildPlan(framework, { business: diagnosis.business.phase, adoption: diagnosis.adoption.level, culture: diagnosis.culture.level }, app.path)
       : null,
+  );
+  const weakest = $derived(
+    questions.axes
+      .filter((a) => a.id !== 'business')
+      .flatMap((a) => weakestAnswers(a, a.id === 'adoption' ? app.answers.adoption : app.answers.culture).items.map((x) => `${a.label}: ${x.question.text}`)),
   );
   const selectedConcerns = $derived(concernReport(concerns, app.concerns));
 
@@ -105,6 +110,7 @@
   {#if diagnosis.business.phase}
     <p style="margin-top: 0.75rem">{diagnosis.business.phase.aiFocus}</p>
   {/if}
+  {#if weakest.length > 0}<p>次に上げるべき場所(最も低い答えの設問): {weakest.join('、')}</p>{/if}
   <EvidenceLinks chapters={['32-three-positions']} />
 
   <h3>2. 目指す道筋</h3>
