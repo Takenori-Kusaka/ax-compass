@@ -1,0 +1,11 @@
+{
+  "//": "画面の「根拠」に出す一次資料。TODO: bib.json から差し替え(本の参考文献が確定したら id を bib の番号に揃える)。URL は実在する一次資料のみ",
+  "items": [
+    { "id": "soumu-r7", "label": "総務省『令和7年版 情報通信白書』生成AIの利用状況", "url": "https://www.soumu.go.jp/johotsusintokei/whitepaper/ja/r07/html/nd112210.html", "publisher": "総務省", "date": "2025-07" },
+    { "id": "mckinsey-2025", "label": "McKinsey, The state of AI (2025)", "url": "https://www.mckinsey.com/capabilities/quantumblack/our-insights/the-state-of-ai", "publisher": "McKinsey & Company", "date": "2025" },
+    { "id": "gartner-agentic-2025", "label": "Gartner, 2027 年末までにエージェント型 AI プロジェクトの 40% 超が中止されるとの予測", "url": "https://www.gartner.com/en/newsroom/press-releases/2025-06-25-gartner-predicts-over-40-percent-of-agentic-ai-projects-will-be-canceled-by-end-of-2027", "publisher": "Gartner", "date": "2025-06-25" },
+    { "id": "nber-w31161", "label": "Brynjolfsson, Li, Raymond, Generative AI at Work (NBER w31161)", "url": "https://www.nber.org/papers/w31161", "publisher": "NBER", "date": "2023-04" },
+    { "id": "rogers-diffusion", "label": "Rogers, Diffusion of Innovations", "url": "https://openlibrary.org/works/OL2652290W", "publisher": "Free Press", "date": "1962" },
+    { "id": "jcurve", "label": "Brynjolfsson, Rock, Syverson, The Productivity J-Curve (AEJ: Macroeconomics)", "url": "https://www.aeaweb.org/articles?id=10.1257/mac.20180386", "publisher": "American Economic Association", "date": "2021" }
+  ]
+}

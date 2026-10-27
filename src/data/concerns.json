@@ -1,0 +1,23 @@
+{
+  "//": "経営層の典型的な悩み。axes は関係する現在地の軸、step は推奨するステップ(1 行)、chapters は本の章の slug、evidence は evidence.json の id",
+  "items": [
+    { "id": "where-to-start", "label": "何から始めればいいか分からない", "axes": ["adoption", "culture"], "step": "経営層自身が会社契約の生成AIを 1 か月使い、利用指針 1 枚を作るところから始めます。順序は S1 から S2 へ。", "chapters": ["37-launching-ax-project", "30-genai-adoption-stages"], "evidence": ["soumu-r7"] },
+    { "id": "shadow-ai", "label": "現場が勝手に使っていて統制が取れない", "axes": ["culture"], "step": "禁止ではなく公認へ。会社契約の SaaS を配り、入力してよい情報の範囲を指針に書きます(C2 から C3 へ)。", "chapters": ["36-culture-formation", "17-governance-regulation"], "evidence": ["soumu-r7"] },
+    { "id": "roi", "label": "ROI を説明できない", "axes": ["culture", "adoption"], "step": "業務ごとに時間・件数・誤りの率を測り、費用と並べます。測れる用途から組み込みます(C3 から C4 へ)。", "chapters": ["15-roi-and-failure", "13-productivity-evidence"], "evidence": ["mckinsey-2025", "nber-w31161"] },
+    { "id": "si-dependence", "label": "SI 任せで社内に知見が残らない", "axes": ["adoption", "culture"], "step": "CoE を 2〜5 名で置き、提供事業者との契約に知識移転の条件を入れます。運営モデルを SaaS 利用から集中へ。", "chapters": ["33-operating-model-evolution", "19-japan-conditions"], "evidence": ["soumu-r7"] },
+    { "id": "labor-shortage", "label": "人手不足を補いたい", "axes": ["business", "adoption"], "step": "人手が足りない業務のうち、手順が決まっているものから S3(手順に組み込む)へ。効果は処理時間で測ります。", "chapters": ["13-productivity-evidence", "19-japan-conditions"], "evidence": ["nber-w31161"] },
+    { "id": "competitor", "label": "競合に遅れていないか不安", "axes": ["business"], "step": "利用率ではなく損益への効果で比べます。公開統計で自社の位置を確認し、早期警戒指標を四半期ごとに見ます。", "chapters": ["12-enterprise-adoption", "29-paths-comparison-indicators"], "evidence": ["mckinsey-2025", "soumu-r7"] },
+    { "id": "security", "label": "セキュリティと著作権が心配", "axes": ["culture"], "step": "入力データが学習に使われない契約条件を確認し、入力してよい情報の区分を指針に書きます。", "chapters": ["17-governance-regulation"], "evidence": [] },
+    { "id": "agent-meaning", "label": "エージェントという言葉の意味が分からない", "axes": ["adoption"], "step": "AI エージェントは、目標を与えると複数の手順を自律的にこなすプログラムです。自律性 A0〜A4 で範囲を決めます。S3 以降で意味を持ちます。", "chapters": ["16-agents-today", "31-agent-adoption-stages", "glossary"], "evidence": ["gartner-agentic-2025"] },
+    { "id": "pilot-stuck", "label": "試作(PoC)ばかりで本番に進まない", "axes": ["adoption", "culture"], "step": "本番に進める基準(正答率、費用の上限、責任者)を先に決め、満たした用途だけを S4 へ進めます。", "chapters": ["15-roi-and-failure", "34-requirements-and-providers"], "evidence": ["mckinsey-2025", "gartner-agentic-2025"] },
+    { "id": "no-talent", "label": "社内に AI 人材がいない", "axes": ["culture", "adoption"], "step": "業務に詳しい人を AI 側へ育てます。技術の全てを内製する必要はなく、評価と統治を社内に持ちます。", "chapters": ["34-requirements-and-providers", "19-japan-conditions"], "evidence": ["soumu-r7"] },
+    { "id": "data-mess", "label": "データや文書が散らばっていて使えない", "axes": ["culture", "adoption"], "step": "どこに何があり、誰が見てよいかの整理から始めます。S3 の社内文書検索は、整理の進んだ部門で先に試します。", "chapters": ["34-requirements-and-providers", "22-organizational-internalization"], "evidence": ["jcurve"] },
+    { "id": "vendor-lockin", "label": "特定の事業者に依存するのが怖い", "axes": ["adoption"], "step": "モデルを差し替えられる設計にし、データは自社で保有します。契約は短期にします(道筋C の後悔しない手)。", "chapters": ["28-path-c-correction", "18-market-map"], "evidence": [] },
+    { "id": "hype", "label": "どの予測を信じればいいか分からない", "axes": ["business"], "step": "1 つの正解はありません。3 つの道筋と早期警戒指標を見て、どの道筋でも後悔しない手から打ちます。", "chapters": ["24-forecast-method", "25-discourse-taxonomy", "29-paths-comparison-indicators"], "evidence": ["rogers-diffusion"] },
+    { "id": "effect-not-visible", "label": "導入したのに効果が見えない", "axes": ["culture", "adoption"], "step": "汎用技術の効果は手順とデータの整備が終わるまで遅れます(生産性 J カーブ)。整備の進み具合を先行指標にします。", "chapters": ["21-gpt-and-j-curve", "15-roi-and-failure"], "evidence": ["jcurve", "mckinsey-2025"] },
+    { "id": "product-ai", "label": "自社製品に AI を入れるべきか判断できない", "axes": ["business", "adoption"], "step": "顧客の業務のうち肩代わりできる部分を 1 つ選び、試験提供で品質と費用を測ります(S5 の最初の手)。", "chapters": ["30-genai-adoption-stages", "34-requirements-and-providers"], "evidence": [] },
+    { "id": "board-explain", "label": "取締役会や株主に説明できる材料がない", "axes": ["business", "culture"], "step": "現在地(3 軸)、選んだ道筋、次のステップ、必要なものと費用を 1 枚にまとめます。このアプリの結果がその雛形です。", "chapters": ["37-launching-ax-project", "32-three-positions"], "evidence": [] },
+    { "id": "regulation", "label": "規制にどう対応すればいいか分からない", "axes": ["adoption"], "step": "用途ごとにリスクの高さを分け、高リスクの用途から統治(責任者、記録、人の確認)を整えます。", "chapters": ["17-governance-regulation"], "evidence": [] },
+    { "id": "jobs", "label": "従業員の仕事がなくなると反発される", "axes": ["culture"], "step": "置き換えではなく、手順の組み替えと役割の変化として説明します。実証では低熟練者の生産性向上が大きい結果があります。", "chapters": ["14-labor-evidence", "36-culture-formation"], "evidence": ["nber-w31161"] }
+  ]
+}

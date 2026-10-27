@@ -1,0 +1,503 @@
+/* AX コンパスの画面の様式。色と書体はブランド(brand.css)の変数だけを使い、ここで色の値を直接書かない。
+   藍=機械・AI、千歳緑=到達、墨=文字、紙=背景。丹は強調に使わない。 */
+@import './brand/brand.css';
+
+:root {
+  /* 本文は 16px 以上。small はラベル(工程、段階記号、札)にだけ使う */
+  --ax-max-width: 56rem;
+  --ax-gutter: 1rem;
+  --ax-radius: 12px;
+  --ax-focus: var(--kb-color-ai-500);
+  --ax-reached: var(--kb-color-growth-600);
+  --ax-reached-strong: var(--kb-color-growth-800);
+  --ax-track: var(--kb-color-ink-200);
+  --ax-selected-bg: var(--kb-color-ai-100);
+  --ax-selected-border: var(--kb-color-ai-700);
+  --ax-machine: var(--kb-color-ai-800);
+  color-scheme: light dark;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --ax-reached: var(--kb-color-growth-400);
+    --ax-reached-strong: var(--kb-color-growth-300);
+    --ax-track: var(--kb-color-ink-700);
+    --ax-selected-bg: var(--kb-color-ai-900);
+    --ax-selected-border: var(--kb-color-ai-300);
+    --ax-machine: var(--kb-color-ai-300);
+  }
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  font-size: 100%;
+  -webkit-text-size-adjust: 100%;
+}
+
+body {
+  margin: 0;
+  background: var(--kb-color-surface-page);
+  color: var(--kb-color-text-primary);
+  font-family: var(--kb-font-family-body);
+  font-size: var(--kb-font-size-body);
+  line-height: var(--kb-font-lineHeight-body);
+  letter-spacing: var(--kb-font-letterSpacing-body);
+  overflow-wrap: anywhere;
+}
+
+h1,
+h2,
+h3,
+h4 {
+  font-family: var(--kb-font-family-heading);
+  font-weight: var(--kb-font-weight-bold);
+  line-height: var(--kb-font-lineHeight-heading);
+  letter-spacing: var(--kb-font-letterSpacing-heading);
+  margin: 0 0 0.5em;
+}
+
+h1 { font-size: var(--kb-font-size-h1); }
+h2 { font-size: var(--kb-font-size-h2); margin-top: 1.5em; }
+h3 { font-size: var(--kb-font-size-h3); margin-top: 1.25em; }
+p { margin: 0 0 1em; }
+ul, ol { margin: 0 0 1em; padding-left: 1.4em; }
+li { margin-bottom: 0.25em; }
+em { font-style: normal; }
+
+a {
+  color: var(--kb-color-text-link);
+  text-decoration: underline;
+  text-underline-offset: 0.2em;
+}
+
+a:focus-visible,
+button:focus-visible,
+input:focus-visible,
+summary:focus-visible {
+  outline: 3px solid var(--ax-focus);
+  outline-offset: 2px;
+}
+
+.container {
+  max-width: var(--ax-max-width);
+  margin: 0 auto;
+  padding: 0 var(--ax-gutter);
+}
+
+.site-header {
+  border-bottom: 1px solid var(--kb-color-border-line);
+  padding: 1rem 0 0.75rem;
+}
+
+.site-header h1 {
+  font-size: 1.25rem;
+  margin: 0;
+}
+
+.site-header .tagline {
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+  margin: 0.25rem 0 0;
+}
+
+main {
+  padding: 1.5rem 0 3rem;
+}
+
+.site-footer {
+  border-top: 1px solid var(--kb-color-border-line);
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+  padding: 1.5rem 0 2rem;
+}
+
+.site-footer p { margin: 0 0 0.5em; }
+
+/* 工程の表示 */
+.stepper {
+  list-style: none;
+  margin: 1rem 0 0;
+  padding: 0;
+  display: flex;
+  gap: 0.25rem;
+  flex-wrap: wrap;
+}
+
+.stepper li {
+  flex: 1 1 6rem;
+  margin: 0;
+  font-size: var(--kb-font-size-small);
+  color: var(--kb-color-text-secondary);
+  border-top: 4px solid var(--ax-track);
+  padding-top: 0.35rem;
+}
+
+.stepper li[aria-current='step'] {
+  color: var(--kb-color-text-primary);
+  border-top-color: var(--ax-machine);
+  font-weight: var(--kb-font-weight-bold);
+}
+
+.stepper li.done { border-top-color: var(--ax-reached); }
+
+.stepper button {
+  all: unset;
+  cursor: pointer;
+  display: block;
+  width: 100%;
+}
+
+.stepper button:focus-visible { outline: 3px solid var(--ax-focus); outline-offset: 2px; }
+
+/* カード・ボックス */
+.card {
+  background: var(--kb-color-surface-card);
+  border: 1px solid var(--kb-color-border-line);
+  border-radius: var(--ax-radius);
+  padding: 1rem 1.25rem;
+  margin-bottom: 1rem;
+}
+
+.note {
+  border-left: 4px solid var(--kb-color-state-interpretation);
+  padding: 0.5rem 1rem;
+  margin: 1rem 0;
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+}
+
+.note p:last-child { margin-bottom: 0; }
+
+.term {
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+}
+
+/* 設問 */
+fieldset {
+  border: 1px solid var(--kb-color-border-line);
+  border-radius: var(--ax-radius);
+  padding: 0.75rem 1rem 0.5rem;
+  margin: 0 0 1rem;
+  min-width: 0;
+}
+
+legend {
+  font-weight: var(--kb-font-weight-bold);
+  padding: 0 0.4rem;
+}
+
+.options {
+  display: grid;
+  gap: 0.4rem;
+  margin: 0.25rem 0 0.5rem;
+}
+
+.option {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 0.6rem;
+  align-items: start;
+  border: 1px solid var(--kb-color-border-line);
+  border-radius: 8px;
+  padding: 0.55rem 0.75rem;
+  cursor: pointer;
+  background: var(--kb-color-surface-page);
+}
+
+.option:has(input:checked) {
+  background: var(--ax-selected-bg);
+  border-color: var(--ax-selected-border);
+}
+
+.option input {
+  margin: 0.4rem 0 0;
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--ax-machine);
+}
+
+.option .stage-tag {
+  display: inline-block;
+  min-width: 2.2rem;
+  margin-right: 0.4rem;
+  color: var(--kb-color-text-secondary);
+  font-family: var(--kb-font-family-code);
+  font-size: var(--kb-font-size-small);
+}
+
+.option-note {
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+  display: block;
+}
+
+/* ボタン */
+.actions {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+  margin: 1.5rem 0 0;
+  align-items: center;
+}
+
+.btn {
+  font: inherit;
+  font-weight: var(--kb-font-weight-bold);
+  border-radius: 8px;
+  padding: 0.6rem 1.1rem;
+  border: 1px solid var(--kb-color-border-strong);
+  background: var(--kb-color-surface-card);
+  color: var(--kb-color-text-primary);
+  cursor: pointer;
+  min-height: 44px;
+}
+
+.btn.primary {
+  background: var(--ax-machine);
+  border-color: var(--ax-machine);
+  color: var(--kb-color-text-inverse);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.status {
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+}
+
+/* 現在地の図 */
+.position-chart {
+  display: grid;
+  gap: 1rem;
+}
+
+.position-row {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.position-row .row-label {
+  font-weight: var(--kb-font-weight-bold);
+}
+
+.position-row .row-value {
+  color: var(--kb-color-text-secondary);
+  font-size: 1rem;
+}
+
+.segments {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: 1fr;
+  gap: 3px;
+}
+
+.segment {
+  height: 2.2rem;
+  border-radius: 6px;
+  background: var(--ax-track);
+  display: grid;
+  place-items: center;
+  font-family: var(--kb-font-family-code);
+  font-size: var(--kb-font-size-small);
+  color: var(--kb-color-text-secondary);
+  min-width: 0;
+  overflow: hidden;
+}
+
+.segment.reached {
+  background: var(--ax-reached);
+  color: var(--kb-color-text-inverse);
+}
+
+.segment.current {
+  background: var(--ax-reached-strong);
+  color: var(--kb-color-text-inverse);
+  outline: 2px solid var(--kb-color-text-primary);
+  outline-offset: -2px;
+  font-weight: var(--kb-font-weight-bold);
+}
+
+.segment.phase {
+  height: auto;
+  padding: 0.4rem 0.2rem;
+  font-family: var(--kb-font-family-body);
+  text-align: center;
+  line-height: 1.3;
+}
+
+/* 道筋の札 */
+.path-grid {
+  display: grid;
+  gap: 0.75rem;
+}
+
+@media (min-width: 720px) {
+  .path-grid { grid-template-columns: repeat(3, 1fr); }
+}
+
+.path-card {
+  display: block;
+  border: 1px solid var(--kb-color-border-line);
+  border-radius: var(--ax-radius);
+  padding: 0.9rem 1rem;
+  background: var(--kb-color-surface-page);
+  cursor: pointer;
+}
+
+.path-card:has(input:checked) {
+  background: var(--ax-selected-bg);
+  border-color: var(--ax-selected-border);
+}
+
+.path-card input {
+  margin: 0 0.5rem 0 0;
+  accent-color: var(--ax-machine);
+}
+
+.path-card h3 { margin-top: 0; display: inline; }
+.path-card dl { margin: 0.5rem 0 0; font-size: 1rem; }
+.path-card dt { font-weight: var(--kb-font-weight-bold); color: var(--kb-color-text-secondary); margin-top: 0.5rem; }
+.path-card dd { margin: 0; }
+.path-card ul { margin: 0; padding-left: 1.2em; }
+
+/* 結果の 1 枚資料 */
+.sheet {
+  background: var(--kb-color-surface-page);
+  border: 1px solid var(--kb-color-border-strong);
+  border-radius: var(--ax-radius);
+  padding: 1.25rem 1.25rem 1rem;
+  margin: 1rem 0;
+}
+
+.sheet h2 { font-size: 1.25rem; margin-top: 0; }
+.sheet h3 { font-size: 1.05rem; margin: 1rem 0 0.4rem; padding-bottom: 0.2rem; border-bottom: 1px solid var(--kb-color-border-line); }
+.sheet h4 { font-size: 1rem; margin: 0.75rem 0 0.25rem; }
+.sheet p, .sheet li { font-size: 1rem; line-height: 1.7; }
+.sheet ul { margin-bottom: 0.5em; }
+.sheet .meta { color: var(--kb-color-text-secondary); font-size: 1rem; margin: 0 0 0.75rem; }
+
+.sheet-grid { display: grid; gap: 0 1.5rem; }
+
+@media (min-width: 720px) {
+  .sheet-grid.two { grid-template-columns: 1fr 1fr; }
+}
+
+.sheet table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 1rem;
+  margin: 0 0 0.75rem;
+}
+
+.sheet th, .sheet td {
+  text-align: left;
+  vertical-align: top;
+  border-bottom: 1px solid var(--kb-color-border-line);
+  padding: 0.35rem 0.4rem;
+}
+
+.sheet th { color: var(--kb-color-text-secondary); font-weight: var(--kb-font-weight-regular); white-space: nowrap; }
+
+.step-block {
+  border: 1px solid var(--kb-color-border-line);
+  border-radius: 8px;
+  padding: 0.6rem 0.9rem;
+  margin: 0.5rem 0;
+  break-inside: avoid;
+}
+
+.step-block .step-title {
+  font-weight: var(--kb-font-weight-bold);
+  margin: 0 0 0.25rem;
+}
+
+.step-block .step-title .stage-id {
+  font-family: var(--kb-font-family-code);
+  color: var(--ax-machine);
+  margin-right: 0.4rem;
+}
+
+.req { display: grid; grid-template-columns: 4.5em 1fr; gap: 0.1rem 0.5rem; margin: 0.25rem 0 0.5rem; font-size: 1rem; }
+.req dt { color: var(--kb-color-text-secondary); }
+.req dd { margin: 0; }
+
+.evidence {
+  font-size: 1rem;
+  color: var(--kb-color-text-secondary);
+  margin: 0.25rem 0 0.5rem;
+}
+
+.evidence a { margin-right: 0.5em; }
+
+.tag-list { display: flex; flex-wrap: wrap; gap: 0.3rem; margin: 0.25rem 0 0.5rem; padding: 0; list-style: none; }
+.tag-list li {
+  border: 1px solid var(--kb-color-border-strong);
+  border-radius: 999px;
+  padding: 0 0.6rem;
+  font-size: 1rem;
+  margin: 0;
+}
+
+textarea.share {
+  width: 100%;
+  font-family: var(--kb-font-family-code);
+  font-size: var(--kb-font-size-small);
+  border: 1px solid var(--kb-color-border-line);
+  border-radius: 8px;
+  padding: 0.5rem;
+  background: var(--kb-color-surface-code);
+  color: var(--kb-color-text-primary);
+}
+
+.visually-hidden {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+/* 印刷: 1 枚資料だけを A4 に出す。画面より詰めて、内容量が多いときも 2 枚までに収める */
+@media print {
+  @page { size: A4; margin: 10mm 12mm; }
+  body { background: #fff; color: #000; font-size: 9pt; line-height: 1.4; }
+  .no-print, .site-header, .site-footer, .stepper, .actions { display: none !important; }
+  main { padding: 0; }
+  .container { max-width: none; padding: 0; }
+  .sheet { border: 0; padding: 0; margin: 0; }
+  .sheet, .sheet p, .sheet li, .sheet table, .sheet .req, .sheet .tag-list li, .sheet .evidence, .sheet .row-value, .sheet .meta, .sheet .term, .sheet .note { font-size: 8.5pt; line-height: 1.35; }
+  .sheet p { margin: 0 0 0.3em; }
+  .sheet ul { margin: 0 0 0.3em; padding-left: 1.2em; }
+  .sheet li { margin-bottom: 0.1em; }
+  .sheet h2 { font-size: 13pt; margin-bottom: 0.2em; }
+  .sheet h3 { font-size: 10.5pt; margin: 0.5em 0 0.25em; padding-bottom: 0.1em; }
+  .sheet h4 { font-size: 9pt; margin: 0.4em 0 0.1em; }
+  .sheet .meta { margin-bottom: 0.3em; }
+  .sheet-grid.two { grid-template-columns: 1fr 1fr; gap: 0 1rem; }
+  .position-chart { gap: 0.3rem; }
+  .segment { height: 1.3rem; font-size: 8pt; background: #e3ddd1; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .segment.reached, .segment.current { background: #477958 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .segment.phase { padding: 0.15rem 0.1rem; }
+  /* ステップの箱は長いので途中での改ページを許し、見出しだけ次の行から離れないようにする */
+  .step-block { padding: 0.3rem 0.6rem; margin: 0.3rem 0; }
+  .sheet h3, .sheet h4, .step-title { break-after: avoid; page-break-after: avoid; }
+  .req { gap: 0 0.4rem; margin: 0.1rem 0 0.3rem; }
+  .tag-list { gap: 0.2rem; margin: 0.1rem 0 0.3rem; }
+  .tag-list li { padding: 0 0.4rem; }
+  .note { margin: 0.3rem 0; padding: 0.2rem 0.6rem; }
+  .evidence { margin: 0.1rem 0 0.3rem; }
+  a { color: inherit; text-decoration: none; }
+  /* 一次資料の一覧は紙では省く(各主張の「根拠」行に資料名と発行元が残る。URL は Markdown に出る) */
+  .refs { display: none; }
+}

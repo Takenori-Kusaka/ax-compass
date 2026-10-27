@@ -1,0 +1,262 @@
+{
+  "//": "本『AIトランスフォーメーションの設計図』第Ⅴ部の枠組み。段階の名前と定義は本の正本(執筆計画 2. 著者の枠組み)に合わせる。文言を変えるときは本と同時に変える",
+  "book": {
+    "title": "AIトランスフォーメーションの設計図",
+    "baseUrl": "https://zenn.dev/takenori_kusaka/books/ai-transformation-blueprint/viewer/",
+    "chapters": {
+      "overview-map": "第0章 一枚の設計図",
+      "12-enterprise-adoption": "第12章 企業の利用",
+      "13-productivity-evidence": "第13章 生産性の実証",
+      "14-labor-evidence": "第14章 雇用の実証",
+      "15-roi-and-failure": "第15章 投資対効果と失敗率",
+      "16-agents-today": "第16章 AIエージェントの現在地",
+      "17-governance-regulation": "第17章 統治と規制",
+      "18-market-map": "第18章 市場の地図",
+      "19-japan-conditions": "第19章 日本の条件",
+      "20-diffusion-theory": "第20章 普及の理論",
+      "21-gpt-and-j-curve": "第21章 汎用技術と生産性 J カーブ",
+      "22-organizational-internalization": "第22章 組織の内部化",
+      "23-maturity-models": "第23章 現在地を測る道具",
+      "24-forecast-method": "第24章 予測の方法",
+      "25-discourse-taxonomy": "第25章 言説の分類",
+      "26-path-a-acceleration": "第26章 道筋A：加速",
+      "27-path-b-gradual": "第27章 道筋B：漸進",
+      "28-path-c-correction": "第28章 道筋C：調整",
+      "29-paths-comparison-indicators": "第29章 3 つの道筋の比較",
+      "30-genai-adoption-stages": "第30章 生成AIはどう導入されてきたか",
+      "31-agent-adoption-stages": "第31章 AIエージェントはどう導入されるか",
+      "32-three-positions": "第32章 三つの現在地",
+      "33-operating-model-evolution": "第33章 運営モデルの進化",
+      "34-requirements-and-providers": "第34章 各段階で必要なもの",
+      "35-strategy-by-path": "第35章 道筋別の戦略",
+      "36-culture-formation": "第36章 文化の形成",
+      "37-launching-ax-project": "第37章 AX プロジェクトの立ち上げ",
+      "glossary": "付録A 用語集"
+    }
+  },
+  "business": {
+    "label": "事業フェーズ",
+    "description": "事業がいま何を最優先しているか。両利きの経営(探索と深化)の観点で読みます。",
+    "chapter": "32-three-positions",
+    "phases": [
+      { "id": "explore", "name": "新規事業(探索)", "short": "探索", "definition": "まだ収益の型が定まらず、顧客と提供価値を探している段階。", "aiFocus": "AI を製品の中核に置く選択肢を早い段階で検討できます。小さく試し、効かなければ捨てる速さが利きます。" },
+      { "id": "growth", "name": "成長", "short": "成長", "definition": "提供価値が定まり、売上と組織を拡大している段階。", "aiFocus": "人員の増加に業務の仕組みが追いつかない箇所に AI を当てます。属人化した手順を文書化する好機です。" },
+      { "id": "mature", "name": "成熟(効率)", "short": "成熟", "definition": "市場が安定し、利益率と効率の改善が主題になる段階。", "aiFocus": "定型業務の自動化と費用の削減が主な用途です。効果を数値で測る体制を先に作ると、投資の判断が速くなります。" },
+      { "id": "renew", "name": "再生(構造転換)", "short": "再生", "definition": "既存の事業モデルが行き詰まり、構造の転換を迫られている段階。", "aiFocus": "AI を既存業務の効率化だけに使うと転換が遅れます。新しい事業の探索と、既存事業の効率化を分けて運営します。" }
+    ]
+  },
+  "adoption": {
+    "label": "導入フェーズ",
+    "description": "生成AIが組織のどの深さまで入っているか。S1 から S6 の 6 段階で表します。",
+    "chapter": "30-genai-adoption-stages",
+    "stages": [
+      {
+        "id": "S1", "level": 1, "name": "触れる",
+        "definition": "個人が試用する。業務の成果物に使わない。",
+        "typical": "無料のチャット、個人契約",
+        "purpose": "生成AIで何ができ、何ができないかを、経営層と現場の双方が自分の手で知る。",
+        "actions": [
+          "経営層と主要な部門長が、会社の契約で生成AIを 1 か月使う",
+          "社内の利用実態(個人契約の使用を含む)を匿名で調べる",
+          "機密情報を入れない範囲を決め、1 枚の利用指針にする"
+        ],
+        "requirements": {
+          "people": "推進役 1 名(兼務でよい)",
+          "data": "不要。機密情報を入力しない範囲を決めるだけ",
+          "governance": "利用指針 1 枚(入力してよい情報、してはいけない情報)",
+          "evaluation": "利用した人の数と、使った業務の一覧",
+          "cost": "SaaS の契約費(1 人あたり月額数千円が目安)"
+        },
+        "layers": ["L4", "L7"],
+        "operatingModel": "saas"
+      },
+      {
+        "id": "S2", "level": 2, "name": "仕事に適用する",
+        "definition": "個人が自分の業務で使う。成果物は人が確認して出す。",
+        "typical": "会社契約の SaaS(Copilot、ChatGPT、Gemini、Claude)",
+        "purpose": "会社として契約し、個人が業務で使う状態を公認する。人が最終確認する原則を定める。",
+        "actions": [
+          "会社契約の生成AI SaaS を選び、対象部門に配る(個人契約の黙認をやめる)",
+          "成果物は人が確認して出す原則を、利用指針に書く",
+          "部門ごとに、使ってよい業務と使わない業務の一覧を作る",
+          "使い方を 1 時間で学べる社内講座を開く"
+        ],
+        "requirements": {
+          "people": "推進役と、各部門に 1 名の世話役",
+          "data": "社内文書を入力してよい範囲の区分(公開・社内・機密)",
+          "governance": "利用指針、契約の確認(入力データが学習に使われない条件)",
+          "evaluation": "利用率(週に 1 回以上使う人の割合)と、業務ごとの節約時間の自己申告",
+          "cost": "SaaS の契約費(利用者数に比例)"
+        },
+        "layers": ["L4", "L7", "L8"],
+        "operatingModel": "saas"
+      },
+      {
+        "id": "S3", "level": 3, "name": "仕事に組み込む",
+        "definition": "部門の手順に組み込む。プロンプト・テンプレート・社内文書検索(RAG)を共有する。",
+        "typical": "社内チャット基盤、ガイドライン、CoE",
+        "purpose": "個人の工夫を部門の手順にする。社内文書を検索して答える仕組みを共有する。",
+        "actions": [
+          "効果の大きい業務を 3 つ選び、手順書に生成AIの使い方を書く",
+          "プロンプトとテンプレートを部門で共有する場所を作る",
+          "社内文書検索(RAG)を 1 部門で試し、答えの正確さを人が測る",
+          "推進の中核(CoE: Center of Excellence。社内の専門チーム)を 2〜5 名で置く"
+        ],
+        "requirements": {
+          "people": "CoE 2〜5 名(業務に詳しい人と技術に詳しい人の両方)",
+          "data": "社内文書の整理(どこに何があるか、誰が見てよいか)",
+          "governance": "部門別の手順書、検索対象文書のアクセス権の確認",
+          "evaluation": "手順に組み込んだ業務の処理時間と品質(誤りの率)",
+          "cost": "SaaS 費に加え、社内チャット基盤の構築・運用費と CoE の人件費"
+        },
+        "layers": ["L4", "L5", "L6", "L7", "L8"],
+        "operatingModel": "central"
+      },
+      {
+        "id": "S4", "level": 4, "name": "システムに組み込む",
+        "definition": "API で自社システム・業務フローに統合する。評価・監視・費用管理を行う。",
+        "typical": "基盤モデル API、エージェント基盤、観測",
+        "purpose": "人が画面で使う段階から、システムが自動で呼ぶ段階へ移る。評価と監視を仕組みにする。",
+        "actions": [
+          "基盤モデルの API を自社システムから呼ぶ用途を 1 つ選ぶ(問い合わせの一次回答、書類の分類など)",
+          "出力の評価(正答率・有害出力の率)と費用を毎日見られる観測の仕組みを置く",
+          "AI エージェント(目標を与えると複数の手順を自律的にこなすプログラム)を、人の承認を挟む範囲(A2)で試す",
+          "API の鍵・権限・ログを統治の対象に加える"
+        ],
+        "requirements": {
+          "people": "CoE に加えて、API 統合ができる開発者と、評価を設計できる人",
+          "data": "業務システムのデータを API から使える形にする(整形、権限、匿名化)",
+          "governance": "AI の出力に対する責任の所在、エージェントの権限と監査ログ、法規制(個人情報、EU AI Act 相当)の確認",
+          "evaluation": "用途ごとの正答率、処理件数、1 件あたりの費用、障害の回数",
+          "cost": "API 従量費(利用量に比例。上限の設定が必要)、エージェント基盤と観測ツールの費用、開発費"
+        },
+        "layers": ["L2", "L3", "L5", "L6", "L7"],
+        "operatingModel": "hub-spoke"
+      },
+      {
+        "id": "S5", "level": 5, "name": "商品に組み込む",
+        "definition": "自社の製品・サービスの機能として顧客に提供する。",
+        "typical": "製品内の AI 機能、価格への反映",
+        "purpose": "AI を内部の効率化から、顧客に売る価値へ広げる。価格と責任の設計が主題になる。",
+        "actions": [
+          "顧客の業務のうち、自社製品が AI で肩代わりできる部分を 1 つ選び、試験提供する",
+          "AI 機能の品質(誤りの率、応答時間)を顧客と合意できる水準で定める",
+          "価格(定額か従量か)と、誤った出力の責任範囲を契約に書く",
+          "モデルの差し替えができる設計にし、特定事業者への依存を抑える"
+        ],
+        "requirements": {
+          "people": "製品の責任者、AI 機能の品質に責任を持つ技術者、法務",
+          "data": "顧客データの利用許諾、学習・評価用データの管理",
+          "governance": "顧客向けの AI 利用の開示、誤出力時の対応手順、規制(業法、個人情報、輸出管理)の確認",
+          "evaluation": "AI 機能の利用率、解約率への影響、1 顧客あたりの推論費用と粗利",
+          "cost": "推論費が原価に入る。利用量が増えるほど費用が増える構造を価格に反映する"
+        },
+        "layers": ["L1", "L2", "L3", "L5", "L6", "L7", "L9"],
+        "operatingModel": "distributed"
+      },
+      {
+        "id": "S6", "level": 6, "name": "顧客へ届ける",
+        "definition": "顧客接点で自律的に価値を届ける。事業モデルが変わる。",
+        "typical": "AI エージェントが顧客対応・取引を完結する",
+        "purpose": "AI エージェントが顧客との取引を完結する。人は例外と設計を担う。",
+        "actions": [
+          "顧客接点の業務で、AI が完結してよい取引の範囲(金額、種類)を定める",
+          "定めた範囲で自律実行し、事後に人が監査する運用(A3)を始める",
+          "例外(苦情、異常、法的な判断)を人へ戻す経路を設計し、訓練する",
+          "事業モデル(課金、人員配置、提供時間)を AI 前提で組み直す"
+        ],
+        "requirements": {
+          "people": "AI の運用を監査する人、例外対応の人、事業モデルを設計する経営層",
+          "data": "顧客との取引データをリアルタイムで AI が参照・更新できる基盤",
+          "governance": "自律実行の範囲の明文化、監査ログ、規制当局への説明責任、保険",
+          "evaluation": "完結率、人へ戻した率、顧客満足、事故の件数と損失額",
+          "cost": "推論費と計算資源が事業の主要な原価になる。計算資源の調達が経営課題になる"
+        },
+        "layers": ["L1", "L2", "L3", "L5", "L6", "L7", "L9"],
+        "operatingModel": "product"
+      }
+    ]
+  },
+  "culture": {
+    "label": "文化フェーズ",
+    "description": "組織が AI をどう扱っているか。禁止から AI・データネイティブまでの 5 段階です。",
+    "chapter": "36-culture-formation",
+    "stages": [
+      { "id": "C1", "level": 1, "name": "禁止・無関心", "definition": "利用を禁止しているか、関心がない。", "next": ["経営層が自分で使い、所感を社内に話す", "禁止の理由(情報漏えいなど)を、利用指針で解決できるかを検討する", "社内の利用実態を匿名で調べる"] },
+      { "id": "C2", "level": 2, "name": "個人の試行(shadow AI)", "definition": "個人が勝手に使っている。会社は黙認している。", "next": ["会社契約の SaaS を配り、個人契約の利用を公認の利用に置き換える", "うまくいった使い方を共有する場(月 1 回で足りる)を作る", "失敗や誤りも共有してよいと経営層が宣言する"] },
+      { "id": "C3", "level": 3, "name": "公認の試行", "definition": "ガイドライン・CoE・学習の場がある。", "next": ["効果を数値で測る(時間、件数、誤りの率)。測れない用途は測り方から決める", "費用を用途ごとに見える化する", "成果を出した部門を評価に反映する"] },
+      { "id": "C4", "level": 4, "name": "測って運用", "definition": "評価・費用・効果を数値で管理している。", "next": ["全員が小さな自動化を自分で作れる環境(ローコード、社内 API)を用意する", "データの品質と整備を継続する役割を正式に置く", "学習と改善を年次ではなく四半期ごとの制度にする"] },
+      { "id": "C5", "level": 5, "name": "AI・データネイティブ", "definition": "全員が作り手。継続的な学習と改善が制度化されている。", "next": ["制度が形骸化していないかを定期的に点検する", "新しい技術(自律性の高いエージェントなど)を試す枠を予算に残す", "外部(顧客、協力会社)との学習の場を持つ"] }
+    ]
+  },
+  "operatingModels": [
+    { "id": "saas", "name": "SaaS 利用", "definition": "IT 部門が契約し、利用者に配る。用途は個人に任せる。", "fitsFor": "S1〜S2" },
+    { "id": "central", "name": "集中(CoE)", "definition": "IT 部門か CoE が AI の取り組みを取りまとめ、手順と基盤を一つに集める。", "fitsFor": "S3" },
+    { "id": "hub-spoke", "name": "ハブ&スポーク", "definition": "CoE が基盤と統治を持ち、事業部が用途を持つ。", "fitsFor": "S4" },
+    { "id": "distributed", "name": "分散", "definition": "事業部が自走し、CoE は標準と監査に専念する。", "fitsFor": "S5" },
+    { "id": "product", "name": "製品組織", "definition": "AI が事業の一部になり、製品組織が AI の運用に責任を持つ。", "fitsFor": "S5〜S6" }
+  ],
+  "layers": [
+    { "id": "L1", "name": "計算資源(半導体・データセンター・電力)", "examples": "NVIDIA、AMD、Google TPU、AWS Trainium。日本はソフトバンク、KDDI、さくらインターネット、Rapidus" },
+    { "id": "L2", "name": "クラウド AI 基盤(モデルをホストする)", "examples": "Microsoft Azure、AWS Bedrock、Google Vertex AI、Oracle OCI。日本はソフトバンク、KDDI、さくらのAI" },
+    { "id": "L3", "name": "基盤モデル", "examples": "OpenAI、Anthropic、Google DeepMind、Meta Llama、Mistral。日本は SB Intuitions、NTT tsuzumi、PFN PLaMo、Sakana AI、ELYZA" },
+    { "id": "L4", "name": "業務アプリ内蔵(SaaS に組み込まれた AI)", "examples": "Microsoft 365 Copilot、Google Workspace Gemini、ChatGPT for Work、Salesforce Agentforce。日本は LayerX、exaBase、kintone AI、PKSHA" },
+    { "id": "L5", "name": "開発者ツール・エージェント基盤", "examples": "GitHub Copilot、Cursor、Claude Code、OpenAI Agents SDK、n8n、AWS AgentCore、Copilot Studio" },
+    { "id": "L6", "name": "データ基盤・ベクトル検索・評価・観測", "examples": "Databricks、Snowflake、Weights & Biases、Datadog LLM Observability。日本は SIer が再販" },
+    { "id": "L7", "name": "統治・安全・ID", "examples": "Microsoft Entra Agent ID、Okta for AI Agents、Palo Alto Prisma AIRS、ISO/IEC 42001。日本は Citadel AI" },
+    { "id": "L8", "name": "SI・コンサル(導入支援)", "examples": "Accenture、IBM。日本は NTT データ、富士通、エクサウィザーズ、NEC、日立" },
+    { "id": "L9", "name": "業界特化(vertical)", "examples": "Sierra(顧客対応)、Harvey(法務)。日本は LegalOn、Med-Sarashina、コールセンター AI" }
+  ],
+  "paths": [
+    {
+      "id": "A", "name": "道筋A：加速", "short": "加速",
+      "chapter": "26-path-a-acceleration",
+      "premise": "能力が年単位で倍増し続け、AI エージェントが知的労働の広い範囲を代替する。",
+      "image2029": "多くの定型的な知的労働を AI エージェントが担い、人は目標の設定と例外の判断に集中している。早く組み替えた企業と、そうでない企業の生産性の差が開いている。",
+      "indicators": ["METR の時間地平(AI が自律的にこなせる作業時間)の倍増が続く", "エージェント課題の成功率が上がり続ける", "ホワイトカラーの新卒採用が減る"],
+      "moves": {
+        "noRegret": ["利用指針と会社契約の SaaS を整え、全員が使える状態にする", "社内文書の整理とアクセス権の整備(どの道筋でも必要)", "効果と費用を測る仕組みを作る"],
+        "option": ["API 統合の小さな実績を 1 つ作り、エージェント基盤を試せる人材を社内に持つ", "モデルを差し替えられる設計にし、特定事業者に固定しない"],
+        "bet": ["エージェントを前提にした業務の組み替え(人員計画を含む)に早期に投資する", "AI 機能を製品の中核に置き、価格と事業モデルを変える"]
+      }
+    },
+    {
+      "id": "B", "name": "道筋B：漸進", "short": "漸進",
+      "chapter": "27-path-b-gradual",
+      "premise": "生産性 J カーブ。普及は 10 年単位で進み、組織資本(手順、データ、人材)がボトルネックになる。",
+      "image2029": "利用率は高いが、損益に効く企業は限られる。手順とデータを整えた企業から順に効果が出始め、差は緩やかに開く。",
+      "indicators": ["企業利用率の伸びが鈍る", "ROI の実現率が緩やかに改善する", "賃金・雇用の統計に大きな変化がない"],
+      "moves": {
+        "noRegret": ["手順の文書化とデータの整備に、AI の予算の半分以上を充てる", "効果を測れる用途から順に組み込む", "人材の育成を外注に頼らず社内に残す"],
+        "option": ["API 統合を 1 用途で試し、技術の変化に追随できる最低限の体制を保つ", "外部の提供事業者との契約を 1〜2 年の短期にする"],
+        "bet": ["業界で先行して手順とデータの整備を終え、効果が出た段階で一気に広げる", "整備した手順と評価の仕組みを、同業他社への提供価値にする"]
+      }
+    },
+    {
+      "id": "C", "name": "道筋C：調整", "short": "調整",
+      "chapter": "28-path-c-correction",
+      "premise": "投資の調整(バブルの収縮)と能力の頭打ち、規制の強化が重なる。技術は残るが提供事業者が再編される。",
+      "image2029": "一部の提供事業者が撤退・統合し、価格と提供条件が変わる。技術そのものは残り、堅実に組み込んだ企業の効果は続く。",
+      "indicators": ["AI 関連の設備投資が減速する", "事業者間の循環取引が解消される", "主要事業者の資金繰りが悪化する", "規制が実際に適用される"],
+      "moves": {
+        "noRegret": ["特定事業者に依存しない設計(モデルの差し替え、データの自社保有)", "規制(個人情報、AI 法)への対応を先に済ませる", "費用の上限と撤退条件を用途ごとに決める"],
+        "option": ["オープンウェイトのモデル(重みが公開され自社で動かせるモデル)を 1 用途で試し、自社運用の選択肢を持つ", "複数の提供事業者と契約し、切り替えの手順を持つ"],
+        "bet": ["再編で安くなる計算資源・人材を取り込み、自社運用の基盤を持つ", "規制対応を強みにし、統治の水準を提供価値にする"]
+      }
+    }
+  ],
+  "undecided": {
+    "id": "undecided", "name": "決めない(選択権を買う)", "short": "未決",
+    "chapter": "35-strategy-by-path",
+    "premise": "どの道筋になるかを今は決めず、3 つの道筋に共通する手と、選択権を買う手を優先する。",
+    "image2029": "早期警戒指標を定期的に見て、分岐が見えた時点で道筋を選ぶ。",
+    "indicators": ["3 つの道筋の早期警戒指標を四半期ごとに確認する"]
+  },
+  "autonomy": [
+    { "id": "A0", "name": "助言のみ", "definition": "AI が助言し、人が実行する。" },
+    { "id": "A1", "name": "提案し、人が実行", "definition": "AI が具体案を出し、人が実行する。" },
+    { "id": "A2", "name": "人の承認を得て実行", "definition": "AI が実行するが、各手順で人の承認を得る(human-in-the-loop)。" },
+    { "id": "A3", "name": "定めた範囲で自律実行", "definition": "定めた範囲で AI が実行し、人は事後に監査する(human-on-the-loop)。" },
+    { "id": "A4", "name": "複数エージェントの協調", "definition": "目標だけを指示し、複数の AI が協調して実行する(human-out-of-the-loop に近い)。" }
+  ]
+}

@@ -1,0 +1,26 @@
+{
+  "name": "ax-compass",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "AX コンパス ── 生成AI・AIエージェント導入の現在地を診断し、目指す道筋とステップを会議体に出せる形に整理する静的 Web アプリ",
+  "engines": {
+    "node": ">=22"
+  },
+  "scripts": {
+    "dev": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "check": "svelte-check --tsconfig ./tsconfig.json && npm run test && npm run build && npm run brand:check",
+    "test": "node --test test/*.test.mjs",
+    "brand:check": "node scripts/brand-sync.mjs --check"
+  },
+  "devDependencies": {
+    "@sveltejs/vite-plugin-svelte": "^5.0.3",
+    "@tsconfig/svelte": "^5.0.4",
+    "svelte": "^5.28.1",
+    "svelte-check": "^4.1.6",
+    "typescript": "~5.8.3",
+    "vite": "^6.3.5"
+  }
+}
