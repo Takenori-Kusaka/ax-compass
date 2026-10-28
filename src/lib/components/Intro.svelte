@@ -1,19 +1,38 @@
 <!-- はじめに。目的、使い方、枠組みの要約、入力の扱い -->
 <script lang="ts">
-  import { app } from '../store.svelte';
-  import { BOOK_URL, framework } from '../data';
+  import { app, replaceState } from '../store.svelte';
+  import { BOOK_URL, framework, questions } from '../data';
+  import { parseState } from '../engine.mjs';
   import EvidenceLinks from './EvidenceLinks.svelte';
 
   let { hasSaved, onReset }: { hasSaved: boolean; onReset: () => void } = $props();
+  let fileInput: HTMLInputElement | undefined = $state();
+  let status = $state('');
+
+  /** 保存した JSON を別の端末でも開けるように、はじめにの画面から読み込む。失敗したら何も変えない */
+  async function loadJson(e: Event) {
+    const input = e.currentTarget as HTMLInputElement;
+    const file = input.files?.[0];
+    if (!file) return;
+    try {
+      const parsed = parseState(JSON.parse(await file.text()), questions);
+      if (!parsed) throw new Error('形式が違います');
+      parsed.step = 4;
+      replaceState(parsed);
+    } catch {
+      status = `${file.name} を読み込めませんでした。このアプリで保存した JSON を選びます`;
+    }
+    input.value = '';
+  }
 </script>
 
 <h2>はじめに</h2>
 <p>
-  AX コンパスは、生成AIと AI エージェントの導入について、自社の現在地を 3 つの軸で特定し、目指す道筋を選び、次に取るべきステップを根拠つきで整理するための道具です。
-  結果は経営会議に出せる 1 枚の資料として印刷・保存できます。
+  AXコンパスは、生成AIとAIエージェントの導入について、自社の現在地を 3 つの軸で特定し、目指す道筋を選び、次に取るべきステップを根拠つきで整理するための道具です。
+  結果は経営会議に出せる資料(本の第37章の 8 つの見出しの型。A4 で 1〜2 枚)として印刷・保存できます。
 </p>
 <p>
-  枠組みは本『<a href={BOOK_URL} target="_blank" rel="noopener">{framework.book.title}</a>』第Ⅴ部に従います。本を読んでいなくても使えます。
+  枠組みは本『<a href={BOOK_URL} target="_blank" rel="noopener">{framework.book.title}<span class="visually-hidden">(新しいタブで開く)</span></a>』第Ⅴ部に従います。本を読んでいなくても使えます。
 </p>
 
 <div class="card">
@@ -22,7 +41,7 @@
     <li>現在地診断: 3 つの軸について、それぞれ 5〜6 問の選択式に答えます。所要時間は 10 分ほどです。</li>
     <li>未来の選択: 3 つの道筋(加速・漸進・調整)から 1 つを選びます。決めない選択もできます。</li>
     <li>悩みの整理: 経営層の典型的な悩みから、当てはまるものを選びます。</li>
-    <li>結果: 現在地、道筋、次のステップ、必要なもの、運営モデル、悩みへの対応を 1 枚にまとめます。</li>
+    <li>結果: 現在地、道筋、早期警戒指標、次の一手、運営モデル、必要なもの、統治の最低限、答えていない問いの 8 つの見出しにまとめます。</li>
   </ol>
 </div>
 
@@ -55,4 +74,7 @@
   {#if hasSaved}
     <button type="button" class="btn" onclick={onReset}>回答を消して最初から</button>
   {/if}
+  <button type="button" class="btn" onclick={() => fileInput?.click()}>保存した JSON を読み込む</button>
+  <input type="file" accept="application/json,.json" class="visually-hidden" bind:this={fileInput} onchange={loadJson} aria-label="JSON ファイルを選ぶ" />
 </div>
+{#if status}<p class="status" role="status">{status}</p>{/if}

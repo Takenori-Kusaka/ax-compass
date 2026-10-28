@@ -27,11 +27,14 @@
   }
 
   onMount(() => {
-    // 共有 URL が優先。なければ前回の続き
+    // 共有 URL が優先。なければ前回の続き。
+    // ハッシュから復元したら、アドレスバーのハッシュを消す。残すと再読込のたびに古い回答で上書きされ、以後の編集が消えるため。
+    // 復元後は localStorage を正とする
     const m = location.hash.match(/^#s=([A-Za-z0-9_-]+)$/);
     const fromUrl = m ? decodeState(m[1], questions) : null;
     if (fromUrl) {
       replaceState(fromUrl);
+      history.replaceState(null, '', location.pathname + location.search);
     } else {
       try {
         const raw = localStorage.getItem(STORAGE_KEY);
@@ -73,8 +76,8 @@
 
 <header class="site-header">
   <div class="container">
-    <h1>AX コンパス</h1>
-    <p class="tagline">AI トランスフォーメーションの現在地診断 ── 3 つの軸で現在地を定め、道筋を選び、次のステップを 1 枚にまとめる</p>
+    <h1>AXコンパス</h1>
+    <p class="tagline">AIトランスフォーメーションの現在地診断 ── 3 つの軸で現在地を定め、道筋を選び、次のステップを会議資料の型にまとめる</p>
     <Stepper {canJump} />
   </div>
 </header>
@@ -97,8 +100,8 @@
   <div class="container">
     <p>このアプリと本は生成AIを使って作成し、著者が内容を確認して公開しています。</p>
     <p>
-      本: <a href={BOOK_URL} target="_blank" rel="noopener">{framework.book.title}</a>(Zenn)。
-      リポジトリ: <a href={REPO_URL} target="_blank" rel="noopener">github.com/Takenori-Kusaka/ax-compass</a>。
+      本: <a href={BOOK_URL} target="_blank" rel="noopener">{framework.book.title}<span class="visually-hidden">(新しいタブで開く)</span></a>(Zenn)。
+      リポジトリ: <a href={REPO_URL} target="_blank" rel="noopener">github.com/Takenori-Kusaka/ax-compass<span class="visually-hidden">(新しいタブで開く)</span></a>。
     </p>
     <p>入力は端末のブラウザにだけ保存され、外部へ送信しません。アクセス解析は使っていません。</p>
   </div>

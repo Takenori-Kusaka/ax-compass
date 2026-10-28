@@ -3,7 +3,7 @@
   "private": true,
   "version": "0.1.0",
   "type": "module",
-  "description": "AX コンパス ── 生成AI・AIエージェント導入の現在地を診断し、目指す道筋とステップを会議体に出せる形に整理する静的 Web アプリ",
+  "description": "AXコンパス ── 生成AI・AIエージェント導入の現在地を診断し、目指す道筋とステップを会議体に出せる形に整理する静的 Web アプリ",
   "engines": {
     "node": ">=22"
   },

@@ -11,6 +11,7 @@ export function replaceState(next: AppState): void {
   app.answers = next.answers;
   app.path = next.path;
   app.concerns = next.concerns;
+  app.openQuestions = next.openQuestions ?? '';
 }
 
 export function resetState(): void {

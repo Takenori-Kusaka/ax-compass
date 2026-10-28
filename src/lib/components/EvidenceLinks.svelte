@@ -11,10 +11,10 @@
   <p class="evidence">
     根拠:
     {#each chapters as slug}
-      <a href={chapterUrl(framework, slug)} target="_blank" rel="noopener">{chapterTitle(framework, slug)}</a>
+      <a href={chapterUrl(framework, slug)} target="_blank" rel="noopener">{chapterTitle(framework, slug)}<span class="visually-hidden">(新しいタブで開く)</span></a>
     {/each}
     {#each items as e}
-      <a href={e.url} target="_blank" rel="noopener">{e.label}({e.publisher}、{e.date})</a>
+      <a href={e.url} target="_blank" rel="noopener">{e.label}({e.publisher}、{e.date})<span class="visually-hidden">(新しいタブで開く)</span></a>
     {/each}
   </p>
 {/if}

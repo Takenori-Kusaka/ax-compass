@@ -1,11 +1,11 @@
-// AX コンパスのロジック本体。診断の集計、ステップ論の生成、Markdown、URL の符号化。
+// AXコンパスのロジック本体。診断の集計、ステップ論の生成、Markdown、URL の符号化。
 // 純関数だけを置く(DOM や localStorage に触れない)。Svelte からも node --test からも同じ関数を使うため、
 // TypeScript ではなく JSDoc つきの JS にしている。
 // @ts-check
 
 /** @typedef {'A'|'B'|'C'|'undecided'} PathId */
 /** @typedef {{ business: Record<string, string>, adoption: Record<string, number>, culture: Record<string, number> }} Answers */
-/** @typedef {{ version: 1, step: number, answers: Answers, path: PathId | null, concerns: string[] }} AppState */
+/** @typedef {{ version: 1, step: number, answers: Answers, path: PathId | null, concerns: string[], openQuestions: string }} AppState */
 
 /** @typedef {{ id: string, text: string, options: { value: string | number, label: string }[] }} Question */
 /** @typedef {{ id: string, label: string, intro: string, questions: Question[] }} Axis */
@@ -13,7 +13,8 @@
 
 /** @typedef {{ id: string, name: string, short: string, definition: string, aiFocus: string }} BusinessPhase */
 /** @typedef {{ people: string, data: string, governance: string, evaluation: string, cost: string }} Requirements */
-/** @typedef {{ id: string, level: number, name: string, definition: string, typical: string, purpose: string, actions: string[], requirements: Requirements, layers: string[], operatingModel: string }} AdoptionStage */
+/** @typedef {{ guideline: string, data: string, identity: string, approval: string }} GovernanceMinimum */
+/** @typedef {{ id: string, level: number, name: string, definition: string, typical: string, purpose: string, actions: string[], requirements: Requirements, governanceMinimum: GovernanceMinimum, layers: string[], operatingModel: string | null }} AdoptionStage */
 /** @typedef {{ id: string, level: number, name: string, definition: string, next: string[] }} CultureStage */
 /** @typedef {{ id: string, name: string, definition: string, fitsFor: string }} OperatingModel */
 /** @typedef {{ id: string, name: string, examples: string }} Layer */
@@ -62,11 +63,13 @@
  */
 
 export const STATE_VERSION = 1;
+/** 「答えていない問い」の自由記述の上限(文字)。URL と localStorage に入れるため */
+export const OPEN_QUESTIONS_MAX = 2000;
 const PATH_IDS = /** @type {PathId[]} */ (['A', 'B', 'C', 'undecided']);
 
 /** @returns {AppState} */
 export function createState() {
-  return { version: STATE_VERSION, step: 0, answers: { business: {}, adoption: {}, culture: {} }, path: null, concerns: [] };
+  return { version: STATE_VERSION, step: 0, answers: { business: {}, adoption: {}, culture: {} }, path: null, concerns: [], openQuestions: '' };
 }
 
 // ---------------------------------------------------------------------------
@@ -131,6 +134,34 @@ export function weakestAnswers(axis, answers) {
 }
 
 /**
+ * 「次に上げるべき場所」の 1 行。同点の設問が多いときは最大 max 件だけ示し、残りは「ほか N 問」にまとめる。
+ * 回答した設問がすべて同点なら、設問を並べずに「全設問が同じ段階」と書く(軸全体を 1 段上げる、が答えになる)。
+ * @param {Axis} axis
+ * @param {Record<string, number>} answers
+ * @param {{ max?: number, prefix?: string }} [opts] prefix は設問番号の前に置く軸の短い名前(「導入」「文化」)
+ * @returns {{ level: number | null, shown: { no: number, text: string }[], more: number, allSame: boolean, text: string }}
+ */
+export function weakestSummary(axis, answers, opts = {}) {
+  const max = opts.max ?? 3;
+  const prefix = opts.prefix ?? axis.label.replace(/フェーズ$/, '');
+  const w = weakestAnswers(axis, answers);
+  if (w.level === null) return { level: null, shown: [], more: 0, allSame: false, text: '' };
+  const answered = axis.questions.filter((q) => typeof answers[q.id] === 'number').length;
+  const allSame = w.items.length === answered && answered > 1;
+  const shown = w.items.slice(0, max).map((x) => ({ no: axis.questions.indexOf(x.question) + 1, text: x.question.text }));
+  const more = Math.max(0, w.items.length - shown.length);
+  const tag = axis.id === 'adoption' ? `S${w.level}` : axis.id === 'culture' ? `C${w.level}` : String(w.level);
+  let text;
+  if (allSame) {
+    text = `${axis.label}: 全設問が同じ段階(${tag})のため、特定の設問ではなく軸全体を 1 段上げる`;
+  } else {
+    const parts = shown.map((x) => `${prefix} ${x.no}「${x.text}」`);
+    text = `${axis.label}: ${parts.join('、')}${more > 0 ? `ほか ${more} 問` : ''}(いずれも ${tag})`;
+  }
+  return { level: w.level, shown, more, allSame, text };
+}
+
+/**
  * @param {Framework} framework
  * @param {QuestionSet} questions
  * @param {Answers} answers
@@ -190,8 +221,8 @@ function opModel(framework, id) {
  * @param {BusinessPhase | null} phase
  */
 function chooseOperatingModel(framework, stage, phase) {
-  let id = stage.operatingModel;
-  let reason = `${stage.id} の既定の運営モデルです。`;
+  let id = stage.operatingModel ?? 'saas';
+  let reason = stage.operatingModel ? `${stage.id} の既定の運営モデルです。` : `${stage.id} では組織の判断がまだないため、最初の形として置いています。`;
   if (phase?.id === 'explore' && stage.level >= 4) {
     id = 'product';
     reason = '新規事業(探索)では、AI を製品の一部として製品組織が運用する方が、CoE を経由するより判断が速いためです。';
@@ -334,7 +365,63 @@ export function chapterTitle(framework, slug) {
 }
 
 /**
- * 会議体向け 1 枚資料の Markdown。画面の結果と同じ内容を、順序も同じに出す。
+ * 統治の最低限(第37章 手順4)。次のステップの段階に合わせて出す。ステップが無ければ現在地の段階。
+ * @param {Framework} framework
+ * @param {Plan | null} plan
+ * @param {AdoptionStage | null} current
+ * @returns {{ stage: AdoptionStage, items: { label: string, text: string }[] } | null}
+ */
+export function governanceMinimum(framework, plan, current) {
+  const stage = plan ? plan.steps[0].stage : current;
+  if (!stage) return null;
+  const g = stage.governanceMinimum;
+  return {
+    stage,
+    items: [
+      { label: 'ガイドライン', text: g.guideline },
+      { label: '入力してよい情報の区分', text: g.data },
+      { label: 'ID と権限', text: g.identity },
+      { label: '承認の位置', text: g.approval },
+    ],
+  };
+}
+
+/**
+ * 早期警戒指標。道筋を選んでいればその道筋の指標、決めない場合は 3 つの道筋の指標をすべて並べる。
+ * @param {Framework} framework
+ * @param {PathId | null} pathId
+ * @returns {{ group: string, items: string[] }[]}
+ */
+export function earlyWarningIndicators(framework, pathId) {
+  if (!pathId) return [];
+  if (pathId === 'undecided') return framework.paths.map((p) => ({ group: p.name, items: p.indicators }));
+  const p = framework.paths.find((x) => x.id === pathId);
+  return p ? [{ group: p.name, items: p.indicators }] : [];
+}
+
+/** 会議資料の 8 つの見出し(本 第37章 手順5)。画面と Markdown で同じ順序・同じ文言を使う */
+export const SHEET_HEADINGS = [
+  '1. 現在地',
+  '2. 前提とする道筋',
+  '3. 早期警戒指標',
+  '4. 次の一手',
+  '5. 運営モデル',
+  '6. 必要なものと提供事業者の層',
+  '7. 統治の最低限',
+  '8. 答えていない問い',
+];
+
+/** 指標の記入の案内。本の記入例(指標名、現在値、担当、確認の頻度)のうち、アプリが埋められない欄を示す */
+export const INDICATOR_NOTE = '現在値と担当は会議で記入します。確認の頻度は四半期の経営会議が目安です。';
+export const OPEN_QUESTIONS_PLACEHOLDER = '決めなかったこと、分からないことを書きます(例: 顧客接点への適用の時期、SI 依存の解消策)。';
+
+/** @param {string} axisId */
+export function axisShort(axisId) {
+  return axisId === 'business' ? '事業' : axisId === 'adoption' ? '導入' : '文化';
+}
+
+/**
+ * 会議体向けの資料の Markdown。画面の結果と同じ内容を、同じ 8 つの見出しの順に出す。
  * @param {{ framework: Framework, questions: QuestionSet, concerns: Concern[], evidence: Evidence[] }} data
  * @param {AppState} state
  */
@@ -343,11 +430,14 @@ export function toMarkdown(data, state) {
   const d = diagnose(framework, questions, state.answers);
   const lines = [];
   const link = (/** @type {string} */ slug) => `[${chapterTitle(framework, slug)}](${chapterUrl(framework, slug)})`;
-  lines.push('# AX コンパス ── 現在地と次のステップ');
+  const H = SHEET_HEADINGS;
+  lines.push('# AXコンパス ── 現在地と次のステップ');
   lines.push('');
-  lines.push('自己申告に基づく目安です。段階の定義は『AIトランスフォーメーションの設計図』第Ⅴ部に従います。');
+  lines.push('自己申告に基づく目安です。段階の名前と定義は『AIトランスフォーメーションの設計図』の表に従います。見出しは本の第37章の会議資料の型(8 つの見出し)です。');
   lines.push('');
-  lines.push('## 現在地');
+
+  // 1. 現在地
+  lines.push(`## ${H[0]}`);
   lines.push('');
   lines.push('| 軸 | 現在地 | 定義 |');
   lines.push('| --- | --- | --- |');
@@ -355,12 +445,23 @@ export function toMarkdown(data, state) {
   lines.push(`| 導入フェーズ | ${d.adoption.stage ? `${d.adoption.stage.id} ${d.adoption.stage.name}` : '未回答'} | ${d.adoption.stage ? d.adoption.stage.definition : ''} |`);
   lines.push(`| 文化フェーズ | ${d.culture.stage ? `${d.culture.stage.id} ${d.culture.stage.name}` : '未回答'} | ${d.culture.stage ? d.culture.stage.definition : ''} |`);
   lines.push('');
+  if (d.business.phase) { lines.push(d.business.phase.aiFocus); lines.push(''); }
+  const weak = questions.axes
+    .filter((a) => a.id !== 'business')
+    .map((a) => weakestSummary(a, a.id === 'adoption' ? state.answers.adoption : state.answers.culture).text)
+    .filter((t) => t);
+  if (weak.length > 0) {
+    lines.push('次に上げるべき場所(最も低い答えの設問):');
+    for (const t of weak) lines.push(`- ${t}`);
+    lines.push('');
+  }
   lines.push(`根拠: ${link('32-three-positions')}`);
   lines.push('');
 
+  // 2. 前提とする道筋
   const pathId = state.path;
   const path = pathId && pathId !== 'undecided' ? framework.paths.find((p) => p.id === pathId) : null;
-  lines.push('## 目指す道筋');
+  lines.push(`## ${H[1]}`);
   lines.push('');
   if (!pathId) {
     lines.push('未選択');
@@ -369,7 +470,6 @@ export function toMarkdown(data, state) {
     lines.push('');
     lines.push(`- 前提: ${path.premise}`);
     lines.push(`- 2029 年の像: ${path.image2029}`);
-    lines.push(`- 早期警戒指標: ${path.indicators.join('、')}`);
     lines.push('');
     lines.push(`根拠: ${link(path.chapter)}、${link('29-paths-comparison-indicators')}`);
   } else {
@@ -382,10 +482,35 @@ export function toMarkdown(data, state) {
   }
   lines.push('');
 
-  if (pathId && d.adoption.level && d.culture.level) {
-    const plan = buildPlan(framework, { business: d.business.phase, adoption: d.adoption.level, culture: d.culture.level }, pathId);
-    lines.push('## 次のステップ');
+  // 3. 早期警戒指標
+  lines.push(`## ${H[2]}`);
+  lines.push('');
+  const indicators = earlyWarningIndicators(framework, pathId);
+  if (indicators.length === 0) {
+    lines.push('道筋を選ぶと表示されます。');
+  } else {
+    for (const g of indicators) {
+      if (indicators.length > 1) lines.push(`${g.group}:`);
+      for (const i of g.items) lines.push(`- ${i}`);
+    }
     lines.push('');
+    lines.push(INDICATOR_NOTE);
+    lines.push('');
+    lines.push(`根拠: ${link('29-paths-comparison-indicators')}`);
+  }
+  lines.push('');
+
+  const plan = pathId && d.adoption.level && d.culture.level
+    ? buildPlan(framework, { business: d.business.phase, adoption: d.adoption.level, culture: d.culture.level }, pathId)
+    : null;
+
+  // 4. 次の一手
+  lines.push(`## ${H[3]}`);
+  lines.push('');
+  if (!plan) {
+    lines.push('現在地診断と道筋の選択を終えると表示されます。');
+    lines.push('');
+  } else {
     lines.push(`期間の目安: ${plan.horizon}`);
     lines.push('');
     lines.push(`事業フェーズからの見方: ${plan.businessNote}`);
@@ -398,23 +523,20 @@ export function toMarkdown(data, state) {
       lines.push('やること:');
       for (const a of s.actions) lines.push(`- ${a}`);
       lines.push('');
-      lines.push('必要なもの:');
-      lines.push(`- 人材: ${s.requirements.people}`);
-      lines.push(`- データ: ${s.requirements.data}`);
-      lines.push(`- 統治: ${s.requirements.governance}`);
-      lines.push(`- 評価: ${s.requirements.evaluation}`);
-      lines.push(`- 費用: ${s.requirements.cost}`);
-      lines.push('');
-      lines.push(`関わる提供事業者の層: ${s.layers.map((l) => `${l.id} ${l.name}`).join('、')}`);
-      lines.push('');
-      lines.push(`運営モデル: ${s.operatingModel.name}(${s.operatingModelReason})`);
-      lines.push('');
       lines.push(s.pathNote);
       lines.push('');
       lines.push(`根拠: ${s.chapters.map(link).join('、')}`);
       lines.push('');
     }
-    lines.push('## 道筋別の手');
+    lines.push('### 文化を 1 段上げる施策');
+    lines.push('');
+    lines.push(`${plan.culture.current.id} ${plan.culture.current.name} → ${plan.culture.target ? `${plan.culture.target.id} ${plan.culture.target.name}` : '最上位に到達(維持)'}`);
+    lines.push('');
+    for (const m of plan.culture.measures) lines.push(`- ${m}`);
+    lines.push('');
+    lines.push(`根拠: ${link('36-culture-formation')}`);
+    lines.push('');
+    lines.push('### 道筋別の手');
     lines.push('');
     lines.push('後悔しない手:');
     for (const m of plan.moves.noRegret) lines.push(`- ${m}`);
@@ -429,24 +551,80 @@ export function toMarkdown(data, state) {
     lines.push('');
     lines.push(`根拠: ${link('35-strategy-by-path')}`);
     lines.push('');
-    lines.push('## 文化を 1 段上げる施策');
-    lines.push('');
-    lines.push(`${plan.culture.current.id} ${plan.culture.current.name} → ${plan.culture.target ? `${plan.culture.target.id} ${plan.culture.target.name}` : '最上位に到達(維持)'}`);
-    lines.push('');
-    for (const m of plan.culture.measures) lines.push(`- ${m}`);
-    lines.push('');
-    lines.push(`根拠: ${link('36-culture-formation')}`);
-    lines.push('');
   }
 
+  // 5. 運営モデル
+  lines.push(`## ${H[4]}`);
+  lines.push('');
+  if (!plan) {
+    lines.push('次の一手が決まると表示されます。');
+  } else {
+    for (const s of plan.steps) {
+      lines.push(`- ステップ ${s.order}(${s.stage.id}): **${s.operatingModel.name}** ── ${s.operatingModel.definition} ${s.operatingModelReason}`);
+    }
+    lines.push('');
+    lines.push(`根拠: ${link('33-operating-model-evolution')}`);
+  }
+  lines.push('');
+
+  // 6. 必要なものと提供事業者の層
+  lines.push(`## ${H[5]}`);
+  lines.push('');
+  if (!plan) {
+    lines.push('次の一手が決まると表示されます。');
+  } else {
+    for (const s of plan.steps) {
+      lines.push(`### ステップ ${s.order}: ${s.stage.id} ${s.stage.name}`);
+      lines.push('');
+      lines.push(`- 人材: ${s.requirements.people}`);
+      lines.push(`- データ: ${s.requirements.data}`);
+      lines.push(`- 統治: ${s.requirements.governance}`);
+      lines.push(`- 評価: ${s.requirements.evaluation}`);
+      lines.push(`- 費用: ${s.requirements.cost}`);
+      lines.push(`- 提供事業者の層: ${s.layers.map((l) => `${l.id} ${l.name}`).join('、')}`);
+      lines.push('');
+    }
+    lines.push(`根拠: ${link('34-requirements-and-providers')}、${link('18-market-map')}`);
+  }
+  lines.push('');
+
+  // 7. 統治の最低限
+  lines.push(`## ${H[6]}`);
+  lines.push('');
+  const gov = governanceMinimum(framework, plan, d.adoption.stage);
+  if (!gov) {
+    lines.push('現在地診断を終えると表示されます。');
+  } else {
+    lines.push(`${gov.stage.id} ${gov.stage.name} に合わせた最低限:`);
+    lines.push('');
+    for (const it of gov.items) lines.push(`- ${it.label}: ${it.text}`);
+    lines.push('');
+    lines.push(`根拠: ${link('37-launching-ax-project')}、${link('17-governance-regulation')}`);
+  }
+  lines.push('');
+
+  // 8. 答えていない問い
+  lines.push(`## ${H[7]}`);
+  lines.push('');
+  const oq = (state.openQuestions ?? '').trim();
+  if (oq) {
+    for (const l of oq.split(/\r?\n/)) lines.push(l);
+  } else {
+    lines.push(`(未記入)${OPEN_QUESTIONS_PLACEHOLDER}`);
+  }
+  lines.push('');
+
+  // 悩みと対応(型の外に補足として置く)
   const selected = concernReport(concerns, state.concerns);
   if (selected.length > 0) {
-    lines.push('## 悩みと対応');
+    lines.push('## 補足: 悩みと対応');
     lines.push('');
     for (const c of selected) {
       lines.push(`### ${c.label}`);
       lines.push('');
       lines.push(c.step);
+      lines.push('');
+      lines.push(`関係する軸: ${c.axes.map(axisShort).join('、')}`);
       lines.push('');
       lines.push(`根拠: ${c.chapters.map(link).join('、')}`);
       const ev = c.evidence.map((id) => evidence.find((e) => e.id === id)).filter((e) => !!e);
@@ -457,7 +635,7 @@ export function toMarkdown(data, state) {
 
   lines.push('---');
   lines.push('');
-  lines.push('AX コンパス(https://takenori-kusaka.github.io/ax-compass/)で作成。このアプリと本は生成AIを使って作成し、著者が内容を確認して公開しています。');
+  lines.push('AXコンパス(https://takenori-kusaka.github.io/ax-compass/)で作成。このアプリと本は生成AIを使って作成し、著者が内容を確認して公開しています。');
   lines.push('');
   return lines.join('\n');
 }
@@ -467,6 +645,7 @@ export function toMarkdown(data, state) {
 
 /**
  * 回答の検証。外部から読み込む JSON と URL は信用せず、形と値域を確かめてから使う。
+ * version が 1 で、認識できる回答が 1 つ以上あるときだけ状態を返す。それ以外は null(読み込みの失敗として扱い、直前の状態を壊さない)。
  * @param {unknown} raw
  * @param {QuestionSet} questions
  * @returns {AppState | null}
@@ -474,13 +653,16 @@ export function toMarkdown(data, state) {
 export function parseState(raw, questions) {
   if (!raw || typeof raw !== 'object') return null;
   const o = /** @type {Record<string, unknown>} */ (raw);
+  if (o.version !== STATE_VERSION) return null;
   const state = createState();
+  let recognized = 0;
   const answers = /** @type {Record<string, unknown>} */ (o.answers && typeof o.answers === 'object' ? o.answers : {});
   for (const axis of questions.axes) {
     const src = /** @type {Record<string, unknown>} */ (answers[axis.id] && typeof answers[axis.id] === 'object' ? answers[axis.id] : {});
     for (const q of axis.questions) {
       const v = src[q.id];
       if (q.options.some((opt) => opt.value === v)) {
+        recognized += 1;
         if (axis.id === 'business') state.answers.business[q.id] = /** @type {string} */ (v);
         else if (axis.id === 'adoption') state.answers.adoption[q.id] = /** @type {number} */ (v);
         else if (axis.id === 'culture') state.answers.culture[q.id] = /** @type {number} */ (v);
@@ -490,6 +672,8 @@ export function parseState(raw, questions) {
   if (typeof o.path === 'string' && PATH_IDS.includes(/** @type {PathId} */ (o.path))) state.path = /** @type {PathId} */ (o.path);
   if (Array.isArray(o.concerns)) state.concerns = o.concerns.filter((c) => typeof c === 'string').slice(0, 50);
   if (typeof o.step === 'number' && Number.isInteger(o.step) && o.step >= 0 && o.step <= 4) state.step = o.step;
+  if (typeof o.openQuestions === 'string') state.openQuestions = o.openQuestions.slice(0, OPEN_QUESTIONS_MAX);
+  if (recognized === 0) return null;
   return state;
 }
 
@@ -506,7 +690,7 @@ export function encodeState(state, questions) {
     const src = all[axis.id] ?? {};
     a[axis.id] = axis.questions.map((q) => q.options.findIndex((opt) => opt.value === src[q.id]));
   }
-  const compact = { v: STATE_VERSION, a, p: state.path, k: state.concerns };
+  const compact = { v: STATE_VERSION, a, p: state.path, k: state.concerns, q: state.openQuestions || undefined };
   return toBase64Url(JSON.stringify(compact));
 }
 
@@ -523,7 +707,7 @@ export function decodeState(encoded, questions) {
     return null;
   }
   if (!compact || typeof compact !== 'object' || compact.v !== STATE_VERSION) return null;
-  const raw = { answers: /** @type {Record<string, Record<string, string | number>>} */ ({}), path: compact.p, concerns: compact.k, step: 4 };
+  const raw = { version: STATE_VERSION, answers: /** @type {Record<string, Record<string, string | number>>} */ ({}), path: compact.p, concerns: compact.k, openQuestions: compact.q, step: 4 };
   for (const axis of questions.axes) {
     const idx = Array.isArray(compact.a?.[axis.id]) ? compact.a[axis.id] : [];
     raw.answers[axis.id] = {};

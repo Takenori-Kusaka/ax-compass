@@ -1,11 +1,27 @@
-<!-- 結果。会議体向け 1 枚資料(.sheet)と、印刷・コピー・保存・復元・共有の操作(.no-print) -->
+<!-- 結果。会議体向けの資料(.sheet。本 第37章の 8 つの見出し)と、印刷・コピー・保存・復元・共有の操作(.no-print) -->
 <script lang="ts">
   import { app, replaceState } from '../store.svelte';
   import { concerns, data, evidence as allEvidence, framework, questions } from '../data';
-  import { buildPlan, concernReport, diagnose, encodeState, parseState, toMarkdown, weakestAnswers } from '../engine.mjs';
+  import {
+    INDICATOR_NOTE,
+    OPEN_QUESTIONS_MAX,
+    OPEN_QUESTIONS_PLACEHOLDER,
+    SHEET_HEADINGS,
+    axisShort,
+    buildPlan,
+    concernReport,
+    diagnose,
+    earlyWarningIndicators,
+    encodeState,
+    governanceMinimum,
+    parseState,
+    toMarkdown,
+    weakestSummary,
+  } from '../engine.mjs';
   import PositionChart from './PositionChart.svelte';
   import EvidenceLinks from './EvidenceLinks.svelte';
 
+  const H = SHEET_HEADINGS;
   const diagnosis = $derived(diagnose(framework, questions, app.answers));
   const path = $derived(app.path && app.path !== 'undecided' ? framework.paths.find((p) => p.id === app.path) ?? null : null);
   const plan = $derived(
@@ -16,9 +32,18 @@
   const weakest = $derived(
     questions.axes
       .filter((a) => a.id !== 'business')
-      .flatMap((a) => weakestAnswers(a, a.id === 'adoption' ? app.answers.adoption : app.answers.culture).items.map((x) => `${a.label}: ${x.question.text}`)),
+      .map((a) => weakestSummary(a, a.id === 'adoption' ? app.answers.adoption : app.answers.culture).text)
+      .filter((t) => t),
   );
+  const indicators = $derived(earlyWarningIndicators(framework, app.path));
+  const governance = $derived(governanceMinimum(framework, plan, diagnosis.adoption.stage));
   const selectedConcerns = $derived(concernReport(concerns, app.concerns));
+  /** この資料の「根拠」行に現れた一次資料だけを末尾に列挙する */
+  const PLAN_EVIDENCE = ['gartner-agentic-2025', 'mckinsey-2025', 'jcurve', 'rogers-diffusion'];
+  const referencedEvidence = $derived.by(() => {
+    const ids = new Set<string>([...(plan ? PLAN_EVIDENCE : []), ...selectedConcerns.flatMap((c) => c.evidence)]);
+    return allEvidence.filter((e) => ids.has(e.id));
+  });
 
   let status = $state('');
   let shareUrl = $state('');
@@ -50,6 +75,7 @@
     status = 'JSON をダウンロードしました';
   }
 
+  /** 読み込みに失敗したときは直前の状態をそのまま残す(parseState が null を返す) */
   async function loadJson(e: Event) {
     const input = e.currentTarget as HTMLInputElement;
     const file = input.files?.[0];
@@ -61,31 +87,30 @@
       replaceState(parsed);
       status = `${file.name} を読み込みました`;
     } catch {
-      status = 'JSON を読み込めませんでした。このアプリで保存したファイルを選びます';
+      status = `${file.name} を読み込めませんでした。このアプリで保存した JSON を選びます。いまの結果はそのまま残しています`;
     }
     input.value = '';
   }
 
+  /** 共有 URL はアドレスバーに書かず、欄とクリップボードにだけ出す(ハッシュが残ると再読込で以後の編集が消えるため) */
   async function share() {
     const encoded = encodeState(app, questions);
     const url = `${location.origin}${location.pathname}#s=${encoded}`;
-    history.replaceState(null, '', `#s=${encoded}`);
     shareUrl = url;
     try {
       await navigator.clipboard.writeText(url);
-      status = '共有用の URL をコピーしました。回答だけを含み、個人情報は含みません';
+      status = '共有用の URL をコピーしました。回答と自由記述だけを含み、個人情報は含みません';
     } catch {
       status = '共有用の URL を下の欄に表示しました';
     }
   }
 
-  const evidenceOf = (ids: string[]) => ids.map((id) => allEvidence.find((e) => e.id === id)).filter((e) => !!e);
   const today = new Date().toLocaleDateString('ja-JP', { year: 'numeric', month: 'long', day: 'numeric' });
 </script>
 
 <h2 class="no-print">結果</h2>
 <p class="no-print">
-  経営会議に出せる 1 枚の資料です。印刷すると、この資料だけが A4 に収まる形で出ます。Markdown のコピーは議事録や社内文書への貼り付けに、JSON は回答の保存と復元に使います。
+  経営会議に出せる資料です。見出しは本の第37章の会議資料の型(8 つの見出し)に合わせています。印刷すると、この資料だけが A4 で 1〜2 枚に出ます。Markdown のコピーは議事録や社内文書への貼り付けに、JSON は回答の保存と復元に使います。
 </p>
 
 <div class="actions no-print">
@@ -102,30 +127,24 @@
 {/if}
 
 <article class="sheet" aria-labelledby="sheet-title">
-  <h2 id="sheet-title">AX コンパス ── 現在地と次のステップ</h2>
-  <p class="meta">{today} 作成。自己申告に基づく目安。段階の定義は『{framework.book.title}』第Ⅴ部に従う。</p>
+  <h2 id="sheet-title">AXコンパス ── 現在地と次のステップ</h2>
+  <p class="meta">{today} 作成。自己申告に基づく目安。段階の名前と定義は『{framework.book.title}』の表に、見出しは第37章の会議資料の型に従う。</p>
 
-  <h3>1. 現在地</h3>
+  <h3>{H[0]}</h3>
   <PositionChart {diagnosis} />
   {#if diagnosis.business.phase}
-    <p style="margin-top: 0.75rem">{diagnosis.business.phase.aiFocus}</p>
+    <p class="print-omit" style="margin-top: 0.75rem">{diagnosis.business.phase.aiFocus}</p>
   {/if}
-  {#if weakest.length > 0}<p>次に上げるべき場所(最も低い答えの設問): {weakest.join('、')}</p>{/if}
+  {#if weakest.length > 0}
+    <p class="weakest-label">次に上げるべき場所(最も低い答えの設問):</p>
+    <ul class="weakest">{#each weakest as w}<li>{w}</li>{/each}</ul>
+  {/if}
   <EvidenceLinks chapters={['32-three-positions']} />
 
-  <h3>2. 目指す道筋</h3>
+  <h3>{H[1]}</h3>
   {#if path}
     <p><strong>{path.name}</strong>: {path.premise}</p>
-    <div class="sheet-grid two">
-      <div>
-        <h4>2029 年の像</h4>
-        <p>{path.image2029}</p>
-      </div>
-      <div>
-        <h4>早期警戒指標</h4>
-        <ul>{#each path.indicators as ind}<li>{ind}</li>{/each}</ul>
-      </div>
-    </div>
+    <p><span class="term">2029 年の像:</span> {path.image2029}</p>
     <EvidenceLinks chapters={[path.chapter, '29-paths-comparison-indicators']} />
   {:else if app.path === 'undecided'}
     <p><strong>{framework.undecided.name}</strong>: {framework.undecided.premise} {framework.undecided.image2029}</p>
@@ -134,90 +153,149 @@
     <p>未選択。未来の選択の画面で道筋を選ぶと、ここに表示されます。</p>
   {/if}
 
+  <h3>{H[2]}</h3>
+  {#if indicators.length === 0}
+    <p>道筋を選ぶと表示されます。</p>
+  {:else}
+    {#each indicators as g}
+      {#if indicators.length > 1}<h4>{g.group}</h4>{/if}
+      <ul>{#each g.items as ind}<li>{ind}</li>{/each}</ul>
+    {/each}
+    <p class="term">{INDICATOR_NOTE}</p>
+    <EvidenceLinks chapters={['29-paths-comparison-indicators']} />
+  {/if}
+
+  <h3>{H[3]}</h3>
   {#if plan}
-    <h3>3. 次のステップ(期間の目安: {plan.horizon})</h3>
-    <p>{plan.businessNote}</p>
+    <p class="meta">期間の目安: {plan.horizon}</p>
+    <p class="print-omit">{plan.businessNote}</p>
+    <div class="steps-grid" data-cols={plan.steps.length}>
     {#each plan.steps as s}
       <div class="step-block">
-        <p class="step-title">ステップ {s.order}: <span class="stage-id">{s.stage.id}</span>{s.stage.name}</p>
+        <p class="step-title">ステップ {s.order}: <span class="stage-id">{s.stage.id}</span> {s.stage.name}</p>
         <p>目的: {s.purpose}</p>
-        <div class="sheet-grid two">
-          <div>
-            <h4>やること</h4>
-            <ul>{#each s.actions as a}<li>{a}</li>{/each}</ul>
-          </div>
-          <div>
-            <h4>必要なもの</h4>
-            <dl class="req">
-              <dt>人材</dt><dd>{s.requirements.people}</dd>
-              <dt>データ</dt><dd>{s.requirements.data}</dd>
-              <dt>統治</dt><dd>{s.requirements.governance}</dd>
-              <dt>評価</dt><dd>{s.requirements.evaluation}</dd>
-              <dt>費用</dt><dd>{s.requirements.cost}</dd>
-            </dl>
-          </div>
-        </div>
-        <h4>関わる提供事業者の層</h4>
-        <ul class="tag-list">{#each s.layers as l}<li>{l.id} {l.name}</li>{/each}</ul>
-        <h4>運営モデルの推奨: {s.operatingModel.name}</h4>
-        <p>{s.operatingModel.definition} {s.operatingModelReason}</p>
-        <p>{s.pathNote}</p>
+        <h4>やること</h4>
+        <ul>{#each s.actions as a}<li>{a}</li>{/each}</ul>
+        <p class="print-omit">{s.pathNote}</p>
         <EvidenceLinks chapters={s.chapters} />
       </div>
     {/each}
-
-    <h3>4. 道筋別の手</h3>
+    </div>
     <div class="sheet-grid two">
       <div>
-        <h4>後悔しない手(どの道筋でも必要)</h4>
-        <ul>{#each plan.moves.noRegret as m}<li>{m}</li>{/each}</ul>
+        <h4>文化を 1 段上げる施策</h4>
+        <p>
+          <strong>{plan.culture.current.id} {plan.culture.current.name}</strong>
+          から
+          {#if plan.culture.target}<strong>{plan.culture.target.id} {plan.culture.target.name}</strong> へ{:else}最上位に到達しているため、維持と点検へ{/if}
+        </p>
+        <ul>{#each plan.culture.measures as m}<li>{m}</li>{/each}</ul>
+        <EvidenceLinks chapters={['36-culture-formation']} evidence={['jcurve', 'rogers-diffusion']} />
       </div>
       <div>
-        <h4>選択権を買う手(小さく投資して将来の選択肢を残す)</h4>
+        <h4>道筋別の手</h4>
+        <p class="term">後悔しない手(どの道筋でも必要)</p>
+        <ul>{#each plan.moves.noRegret as m}<li>{m}</li>{/each}</ul>
+        <p class="term">選択権を買う手(小さく投資して将来の選択肢を残す)</p>
         <ul>{#each plan.moves.option as m}<li>{m}</li>{/each}</ul>
-        <h4>賭ける手(道筋が当たったときに大きく効く)</h4>
+        <p class="term">賭ける手(道筋が当たったときに大きく効く)</p>
         {#if plan.moves.bet.length === 0}
           <p>道筋を選んでから検討します。</p>
         {:else}
           <ul>{#each plan.moves.bet as m}<li>{m}</li>{/each}</ul>
         {/if}
+        {#if plan.moves.caution}<p class="note">{plan.moves.caution}</p>{/if}
+        <EvidenceLinks chapters={['35-strategy-by-path']} evidence={['gartner-agentic-2025', 'mckinsey-2025']} />
       </div>
     </div>
-    {#if plan.moves.caution}<p class="note">{plan.moves.caution}</p>{/if}
-    <EvidenceLinks chapters={['35-strategy-by-path']} evidence={['gartner-agentic-2025', 'mckinsey-2025']} />
-
-    <h3>5. 文化を 1 段上げる施策</h3>
-    <p>
-      <strong>{plan.culture.current.id} {plan.culture.current.name}</strong>
-      から
-      {#if plan.culture.target}<strong>{plan.culture.target.id} {plan.culture.target.name}</strong> へ{:else}最上位に到達しているため、維持と点検へ{/if}
-    </p>
-    <ul>{#each plan.culture.measures as m}<li>{m}</li>{/each}</ul>
-    <EvidenceLinks chapters={['36-culture-formation']} evidence={['jcurve', 'rogers-diffusion']} />
   {:else}
-    <h3>3. 次のステップ</h3>
     <p>現在地診断と道筋の選択を終えると、ここにステップが表示されます。</p>
   {/if}
 
+  <h3>{H[4]}</h3>
+  {#if plan}
+    <ul>
+      {#each plan.steps as s}
+        <li>ステップ {s.order}({s.stage.id}): <strong>{s.operatingModel.name}</strong> ── {s.operatingModel.definition} <span class="print-omit">{s.operatingModelReason}</span></li>
+      {/each}
+    </ul>
+    <EvidenceLinks chapters={['33-operating-model-evolution']} />
+  {:else}
+    <p>次の一手が決まると表示されます。</p>
+  {/if}
+
+  <h3>{H[5]}</h3>
+  {#if plan}
+    <div class="steps-grid" data-cols={plan.steps.length}>
+    {#each plan.steps as s}
+      <div class="step-block">
+        <p class="step-title">ステップ {s.order}: <span class="stage-id">{s.stage.id}</span> {s.stage.name}</p>
+        <dl class="req">
+          <dt>人材</dt><dd>{s.requirements.people}</dd>
+          <dt>データ</dt><dd>{s.requirements.data}</dd>
+          <dt>統治</dt><dd>{s.requirements.governance}</dd>
+          <dt>評価</dt><dd>{s.requirements.evaluation}</dd>
+          <dt>費用</dt><dd>{s.requirements.cost}</dd>
+          <dt>層</dt><dd><ul class="tag-list">{#each s.layers as l}<li>{l.id} {l.name}</li>{/each}</ul></dd>
+        </dl>
+      </div>
+    {/each}
+    </div>
+    <EvidenceLinks chapters={['34-requirements-and-providers', '18-market-map']} />
+  {:else}
+    <p>次の一手が決まると表示されます。</p>
+  {/if}
+
+  <h3>{H[6]}</h3>
+  {#if governance}
+    <p class="term">{governance.stage.id} {governance.stage.name} に合わせた最低限</p>
+    <dl class="req gov">
+      {#each governance.items as it}
+        <dt>{it.label}</dt><dd>{it.text}</dd>
+      {/each}
+    </dl>
+    <EvidenceLinks chapters={['37-launching-ax-project', '17-governance-regulation']} />
+  {:else}
+    <p>現在地診断を終えると表示されます。</p>
+  {/if}
+
+  <h3><label for="open-questions">{H[7]}</label></h3>
+  <textarea
+    id="open-questions"
+    class="open-questions no-print"
+    rows="4"
+    maxlength={OPEN_QUESTIONS_MAX}
+    placeholder={OPEN_QUESTIONS_PLACEHOLDER}
+    bind:value={app.openQuestions}
+  ></textarea>
+  <p class="term no-print">決めなかったことを書かない資料は、決めたことの範囲が分からなくなります(本 第37章)。この欄は保存・共有・Markdown・印刷に含まれます。</p>
+  <div class="open-questions-print print-only" aria-hidden="true">
+    {#if app.openQuestions.trim()}{app.openQuestions}{:else}(未記入){/if}
+  </div>
+
   {#if selectedConcerns.length > 0}
-    <h3>{plan ? '6' : '4'}. 悩みと対応</h3>
+    <h3>補足: 悩みと対応</h3>
+    <div class="steps-grid" data-cols={Math.min(3, selectedConcerns.length >= 4 ? 3 : selectedConcerns.length)}>
     {#each selectedConcerns as c}
       <div class="step-block">
         <p class="step-title">{c.label}</p>
         <p>{c.step}</p>
-        <p class="term">関係する軸: {c.axes.map((a) => (a === 'business' ? '事業' : a === 'adoption' ? '導入' : '文化')).join('、')}</p>
+        <p class="term print-omit">関係する軸: {c.axes.map(axisShort).join('、')}</p>
         <EvidenceLinks chapters={c.chapters} evidence={c.evidence} />
       </div>
     {/each}
+    </div>
   {/if}
 
-  <h3 class="refs">参照した一次資料</h3>
-  <ul class="evidence-list refs">
-    {#each evidenceOf(allEvidence.map((e) => e.id)) as e}
-      <li><a href={e.url} target="_blank" rel="noopener">{e.label}</a>({e.publisher}、{e.date})</li>
-    {/each}
-  </ul>
-  <p class="meta">AX コンパス(https://takenori-kusaka.github.io/ax-compass/)で作成。このアプリと本は生成AIを使って作成し、著者が内容を確認して公開しています。</p>
+  {#if referencedEvidence.length > 0}
+    <h3 class="refs">この資料で参照した一次資料</h3>
+    <ul class="evidence-list refs">
+      {#each referencedEvidence as e}
+        <li><a href={e.url} target="_blank" rel="noopener">{e.label}<span class="visually-hidden">(新しいタブで開く)</span></a>({e.publisher}、{e.date})</li>
+      {/each}
+    </ul>
+  {/if}
+  <p class="meta">AXコンパス(https://takenori-kusaka.github.io/ax-compass/)で作成。このアプリと本は生成AIを使って作成し、著者が内容を確認して公開しています。</p>
 </article>
 
 <div class="actions no-print">

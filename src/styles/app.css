@@ -1,4 +1,4 @@
-/* AX コンパスの画面の様式。色と書体はブランド(brand.css)の変数だけを使い、ここで色の値を直接書かない。
+/* AXコンパスの画面の様式。色と書体はブランド(brand.css)の変数だけを使い、ここで色の値を直接書かない。
    藍=機械・AI、千歳緑=到達、墨=文字、紙=背景。丹は強調に使わない。 */
 @import './brand/brand.css';
 
@@ -11,6 +11,8 @@
   --ax-reached: var(--kb-color-growth-600);
   --ax-reached-strong: var(--kb-color-growth-800);
   --ax-track: var(--kb-color-ink-200);
+  /* 未到達の区分の文字。--ax-track の上で 4.5:1 以上を保つ(墨 900 on 墨 200、ダークでは紙 100 on 墨 700) */
+  --ax-track-text: var(--kb-color-ink-900);
   --ax-selected-bg: var(--kb-color-ai-100);
   --ax-selected-border: var(--kb-color-ai-700);
   --ax-machine: var(--kb-color-ai-800);
@@ -22,6 +24,7 @@
     --ax-reached: var(--kb-color-growth-400);
     --ax-reached-strong: var(--kb-color-growth-300);
     --ax-track: var(--kb-color-ink-700);
+    --ax-track-text: var(--kb-color-paper-100);
     --ax-selected-bg: var(--kb-color-ai-900);
     --ax-selected-border: var(--kb-color-ai-300);
     --ax-machine: var(--kb-color-ai-300);
@@ -226,7 +229,7 @@ legend {
   display: inline-block;
   min-width: 2.2rem;
   margin-right: 0.4rem;
-  color: var(--kb-color-text-secondary);
+  color: var(--kb-color-text-primary);
   font-family: var(--kb-font-family-code);
   font-size: var(--kb-font-size-small);
 }
@@ -309,7 +312,7 @@ legend {
   place-items: center;
   font-family: var(--kb-font-family-code);
   font-size: var(--kb-font-size-small);
-  color: var(--kb-color-text-secondary);
+  color: var(--ax-track-text);
   min-width: 0;
   overflow: hidden;
 }
@@ -424,12 +427,33 @@ legend {
 .step-block .step-title .stage-id {
   font-family: var(--kb-font-family-code);
   color: var(--ax-machine);
-  margin-right: 0.4rem;
 }
 
 .req { display: grid; grid-template-columns: 4.5em 1fr; gap: 0.1rem 0.5rem; margin: 0.25rem 0 0.5rem; font-size: 1rem; }
 .req dt { color: var(--kb-color-text-secondary); }
 .req dd { margin: 0; }
+.req.gov { grid-template-columns: 9em 1fr; }
+.req .tag-list { margin: 0; }
+
+.weakest-label { margin-bottom: 0.25em; }
+.weakest { margin-bottom: 0.5em; }
+
+/* 8. 答えていない問い: 画面では欄、印刷では書いた文をそのまま出す */
+textarea.open-questions {
+  width: 100%;
+  font: inherit;
+  font-size: 1rem;
+  line-height: 1.6;
+  border: 1px solid var(--kb-color-border-strong);
+  border-radius: 8px;
+  padding: 0.5rem 0.75rem;
+  background: var(--kb-color-surface-card);
+  color: var(--kb-color-text-primary);
+  resize: vertical;
+}
+
+.print-only { display: none; }
+.open-questions-print { white-space: pre-wrap; }
 
 .evidence {
   font-size: 1rem;
@@ -468,36 +492,49 @@ textarea.share {
   white-space: nowrap;
 }
 
-/* 印刷: 1 枚資料だけを A4 に出す。画面より詰めて、内容量が多いときも 2 枚までに収める */
+/* 印刷: 資料だけを A4 に出す。画面より詰め、一次資料の一覧・根拠リンク・補足説明(.print-omit)を省いて 1〜2 枚に収める */
 @media print {
-  @page { size: A4; margin: 10mm 12mm; }
-  body { background: #fff; color: #000; font-size: 9pt; line-height: 1.4; }
-  .no-print, .site-header, .site-footer, .stepper, .actions { display: none !important; }
+  @page { size: A4; margin: 8mm 10mm; }
+  body { background: #fff; color: #000; font-size: 8pt; line-height: 1.3; }
+  .no-print, .site-header, .site-footer, .stepper, .actions, .print-omit { display: none !important; }
+  .print-only { display: block; }
   main { padding: 0; }
   .container { max-width: none; padding: 0; }
   .sheet { border: 0; padding: 0; margin: 0; }
-  .sheet, .sheet p, .sheet li, .sheet table, .sheet .req, .sheet .tag-list li, .sheet .evidence, .sheet .row-value, .sheet .meta, .sheet .term, .sheet .note { font-size: 8.5pt; line-height: 1.35; }
+  .sheet, .sheet p, .sheet li, .sheet table, .sheet .req, .sheet .tag-list li, .sheet .row-value, .sheet .meta, .sheet .term, .sheet .note, .sheet .open-questions-print { font-size: 8pt; line-height: 1.3; }
   .sheet p { margin: 0 0 0.3em; }
   .sheet ul { margin: 0 0 0.3em; padding-left: 1.2em; }
-  .sheet li { margin-bottom: 0.1em; }
-  .sheet h2 { font-size: 13pt; margin-bottom: 0.2em; }
-  .sheet h3 { font-size: 10.5pt; margin: 0.5em 0 0.25em; padding-bottom: 0.1em; }
-  .sheet h4 { font-size: 9pt; margin: 0.4em 0 0.1em; }
+  .sheet li { margin-bottom: 0; }
+  .sheet h2 { font-size: 12pt; margin-bottom: 0.2em; }
+  .sheet h3 { font-size: 10pt; margin: 0.45em 0 0.2em; padding-bottom: 0.1em; }
+  .sheet h4 { font-size: 8.5pt; margin: 0.3em 0 0.1em; }
+  /* ステップと悩みの箱は紙では 2 列に並べる(1 つだけなら全幅) */
+  .steps-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.6rem; align-items: start; }
+  .steps-grid > .step-block:only-child { grid-column: 1 / -1; }
+  .steps-grid[data-cols='3'] { grid-template-columns: repeat(3, 1fr); }
+  /* 層の札は紙では読点区切りの文にする(縦に伸びないように) */
+  .tag-list { display: block; }
+  .tag-list li { display: inline; border: 0; padding: 0; }
+  .tag-list li:not(:last-child)::after { content: '、'; }
+  .steps-grid .step-block, .steps-grid .step-block p, .steps-grid .step-block li, .steps-grid .req { font-size: 7.5pt; line-height: 1.25; }
+  .steps-grid .req { grid-template-columns: 3.2em 1fr; }
+  .position-row .row-value { font-size: 7.5pt; }
+  .segment { height: 1.1rem; }
   .sheet .meta { margin-bottom: 0.3em; }
   .sheet-grid.two { grid-template-columns: 1fr 1fr; gap: 0 1rem; }
   .position-chart { gap: 0.3rem; }
-  .segment { height: 1.3rem; font-size: 8pt; background: #e3ddd1; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
+  .segment { font-size: 7.5pt; background: #e3ddd1; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .segment.reached, .segment.current { background: #477958 !important; color: #fff !important; -webkit-print-color-adjust: exact; print-color-adjust: exact; }
   .segment.phase { padding: 0.15rem 0.1rem; }
   /* ステップの箱は長いので途中での改ページを許し、見出しだけ次の行から離れないようにする */
-  .step-block { padding: 0.3rem 0.6rem; margin: 0.3rem 0; }
+  .step-block { padding: 0.25rem 0.5rem; margin: 0.2rem 0; }
   .sheet h3, .sheet h4, .step-title { break-after: avoid; page-break-after: avoid; }
   .req { gap: 0 0.4rem; margin: 0.1rem 0 0.3rem; }
   .tag-list { gap: 0.2rem; margin: 0.1rem 0 0.3rem; }
   .tag-list li { padding: 0 0.4rem; }
   .note { margin: 0.3rem 0; padding: 0.2rem 0.6rem; }
-  .evidence { margin: 0.1rem 0 0.3rem; }
   a { color: inherit; text-decoration: none; }
-  /* 一次資料の一覧は紙では省く(各主張の「根拠」行に資料名と発行元が残る。URL は Markdown に出る) */
-  .refs { display: none; }
+  /* 根拠リンクと一次資料の一覧は紙では省く(章名と URL は Markdown に出る) */
+  .evidence, .refs { display: none; }
+  .sheet-grid.two > div { break-inside: avoid; }
 }
