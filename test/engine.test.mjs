@@ -50,7 +50,7 @@ test('データの整合: 設問の選択肢が段階の範囲に収まり、章
   }
   // 運営モデルは本の第0章の表どおり O1〜O5 の記号と名前を持つ
   assert.deepEqual(framework.operatingModels.map((m) => `${m.code} ${m.name}`), ['O1 SaaS利用', 'O2 集中', 'O3 ハブ&スポーク', 'O4 分散', 'O5 製品組織']);
-  assert.deepEqual(framework.culture.stages.map((s) => s.name), ['禁止または無関心', '個人の試行', '公認の試行', '測って運用する', 'AI・データネイティブ']);
+  assert.deepEqual(framework.culture.stages.map((s) => s.name), ['禁止・無関心', '個人の試行', '公認の試行', '測って運用', 'AI・データネイティブ']);
   assert.match(framework.culture.stages[2].definition, /^利用規程、学ぶ場\(研修か公認の試行の場\)、推進者の3つがそろった状態/);
   assert.equal(framework.book.chapters['37-launching-ax-project'], '第37章　AXプロジェクトの立ち上げ ―― 現在地・道筋・次の一手・統治');
   assert.equal(framework.book.chapters['38-meeting-pack'], '第38章　会議資料と90日計画 ―― 1枚の型・費用の試算・記入例');
@@ -287,7 +287,7 @@ test('Markdown に本の第38章の 10 の見出しが順に含まれ、自由�
   assert.match(md, /- 承認の位置: /);
   assert.match(md, /## 1\. 現在地\n[\s\S]*間接部門S2、製造S1。対象は国内拠点\n/);
   assert.match(md, /## 3\. 早期警戒指標\n\n- 企業利用率の伸びが鈍る[\s\S]*削減時間\(各事業部、毎月集計\)\n/);
-  assert.match(md, /## 5\. 担当役員と取りまとめ部門\n\n運営モデル:\n- ステップ 1\(S3\): \*\*O2 集中\*\* ── 推進組織が用途と基盤と統治を一手に担う。/);
+  assert.match(md, /## 5\. 担当役員と取りまとめ部門\n\n運営モデル:\n- ステップ 1\(S3\): \*\*O2 集中\*\* ── 専任の推進組織が用途と基盤と統治を一手に担う。/);
   assert.match(md, /責任を負う役員、推進の担い手:\n\n担当役員は生産担当の副社長\n/);
   assert.match(md, /## 6\. 必要なものと提供事業者の層\n\n### ステップ 1: S3 仕事に組み込む\n\n- 人材: /);
   assert.match(md, /## 7\. 投資と効果と撤退基準\n\n席代は年1,350万円、開発と研修は別途\n/);
@@ -298,7 +298,7 @@ test('Markdown に本の第38章の 10 の見出しが順に含まれ、自由�
   // 未記入なら「書くこと」(本の表の逐語)を案内として出す。未回答でも 10 見出しは出る
   const md2 = toMarkdown(data, createState());
   for (const h of SHEET_HEADINGS) assert.ok(md2.includes(`\n## ${h}\n`), h);
-  assert.match(md2, /## 7\. 投資と効果と撤退基準\n\n\(未記入\)書くこと: 投資の総額\(席代、開発、人件費、研修\)、効果の回収計画\(削減時間を何に変えるか、責任者\)、何が起きたら止めるか\n/);
+  assert.match(md2, /## 7\. 投資と効果と撤退基準\n\n\(未記入\)書くこと: 投資の総額\(席代、開発、人件費、研修\)、効果の回収計画\(削減時間を何に変えるか、責任者\)、用途の撤退基準\(何が起きたら止めるか\)\n/);
   assert.match(md2, /## 9\. 決裁事項\n\n\(未記入\)書くこと: 本日承認してほしいこと\n/);
   assert.match(md2, /## 10\. 答えていない問い\n\n\(未記入\)書くこと: 決めなかったこと、分からないこと\n/);
   // 決めない場合は 3 つの道筋の指標がすべて出る
@@ -310,19 +310,19 @@ test('Markdown に本の第38章の 10 の見出しが順に含まれ、自由�
   assert.equal(governanceMinimum(framework, null, null), null);
 });
 
-test('weakestSummary: 最も低い答えの設問を 1 つ示し、同点なら設問の順で早いもの(第 1 問)を優先する(本 第32章)', () => {
+test('weakestSummary: 最も低い答えの設問を 1 つ示し、同点なら表の上にある設問(第 1 問)を優先する(本 第32章)', () => {
   const s = axis('adoption');
   // 6 問中 4 問が同点 → 第 1 問を優先、ほか 3 問
   const w = weakestSummary(s, { s1: 1, s2: 1, s3: 1, s4: 1, s5: 2, s6: 3 });
   assert.equal(w.level, 1);
   assert.equal(w.primary?.no, 1);
   assert.equal(w.ties, 3);
-  assert.match(w.text, /^導入フェーズ: 導入 1「生成AIの利用契約は誰が結んでいますか」\(S1\)。同点の設問がほか 3 問あり、設問の順で早い 導入 1 を優先$/);
+  assert.match(w.text, /^導入フェーズ: 導入 1「生成AIの利用契約は誰が結んでいますか」\(S1\)。同点の設問がほか 3 問あり、表の上にある 導入 1 を優先$/);
   // 第 1 問が同点でなければ、同点のうち最も早い設問
   const two = weakestSummary(axis('culture'), { c1: 3, c2: 1, c3: 4, c4: 1, c5: 2, c6: 5 });
   assert.equal(two.primary?.no, 2);
   assert.equal(two.ties, 1);
-  assert.match(two.text, /^文化フェーズ: 文化 2「.+」\(C1\)。同点の設問がほか 1 問あり、設問の順で早い 文化 2 を優先$/);
+  assert.match(two.text, /^文化フェーズ: 文化 2「.+」\(C1\)。同点の設問がほか 1 問あり、表の上にある 文化 2 を優先$/);
   // 同点が無ければ 1 問だけ
   const one = weakestSummary(s, { s1: 3, s2: 2, s3: 4, s4: 5, s5: 3, s6: 6 });
   assert.equal(one.ties, 0);

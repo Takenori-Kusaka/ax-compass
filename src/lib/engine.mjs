@@ -149,7 +149,7 @@ export function weakestAnswers(axis, answers) {
 
 /**
  * 「次に上げるべき場所」の 1 行。本 第32章の採点の規則どおり、最も低い答えの設問を 1 つ示し、
- * 同点の設問が複数あるときは設問の順で早いもの(第1問なら契約の有無)を優先する。残りの同点は数だけ添える。
+ * 同点の設問が複数あるときは表の上にある設問(第1問なら契約の有無)を優先する。残りの同点は数だけ添える。
  * @param {Axis} axis
  * @param {Record<string, number>} answers
  * @param {{ prefix?: string }} [opts] prefix は設問番号の前に置く軸の短い名前(「導入」「文化」)
@@ -163,7 +163,7 @@ export function weakestSummary(axis, answers, opts = {}) {
   const primary = { no: axis.questions.indexOf(first.question) + 1, text: first.question.text };
   const ties = w.items.length - 1;
   const tag = axis.id === 'adoption' ? `S${w.level}` : axis.id === 'culture' ? `C${w.level}` : String(w.level);
-  const tieNote = ties > 0 ? `。同点の設問がほか ${ties} 問あり、設問の順で早い ${prefix} ${primary.no} を優先` : '';
+  const tieNote = ties > 0 ? `。同点の設問がほか ${ties} 問あり、表の上にある ${prefix} ${primary.no} を優先` : '';
   const text = `${axis.label}: ${prefix} ${primary.no}「${primary.text}」(${tag})${tieNote}`;
   return { level: w.level, primary, ties, text };
 }
@@ -414,11 +414,11 @@ export function earlyWarningIndicators(framework, pathId) {
 export const SHEET_SECTIONS = [
   { heading: '1. 現在地', writes: '事業フェーズ、導入フェーズ、文化フェーズ。部門別の分布。対象とする拠点の範囲(国内のみ、EU、中国など)', example: '成熟(効率)、S2、C2。間接部門S2、製造S1。対象は国内拠点', note: 'position', chapters: ['32-three-positions', '19-japan-conditions'] },
   { heading: '2. 前提とする道筋', writes: 'A、B、Cのいずれか、または「決めない」', example: 'B(漸進)を前提に、Aへの選択権を持つ', note: null, chapters: ['29-paths-comparison-indicators'] },
-  { heading: '3. 早期警戒指標', writes: '指標名、現在値、担当、確認の頻度', example: '自社：削減時間、利用者の割合(四半期の会議)。社外：第29章の上位3つ(年1回、経営企画)', note: 'indicators', chapters: ['29-paths-comparison-indicators'] },
+  { heading: '3. 早期警戒指標', writes: '指標名、現在値、担当、確認の頻度', example: '自社：削減時間、利用者の割合(毎月集計、四半期の会議)。社外：第29章の上位3つ(四半期の会議、経営企画)、残りは年1回', note: 'indicators', chapters: ['29-paths-comparison-indicators'] },
   { heading: '4. 次の一手', writes: '上げる軸と段階、期限', example: 'C2→C3(利用規程、学ぶ場、推進者)、90日', note: null, chapters: ['35-strategy-by-path'] },
   { heading: '5. 担当役員と取りまとめ部門', writes: '責任を負う役員、運営モデル、推進の担い手', example: '担当役員は生産担当の副社長。情報システム部が契約と統治、事業部が用途。(小さな会社)社長が推進役、総務が規程、IT担当が契約', note: 'owner', chapters: ['33-operating-model-evolution'] },
   { heading: '6. 必要なものと提供事業者の層', writes: '人材、データ、統治、評価と、買う層', example: 'L4業務アプリ内蔵(既に使っている業務ソフトに組み込まれたAI)の席課金から開始', note: null, chapters: ['34-requirements-and-providers'] },
-  { heading: '7. 投資と効果と撤退基準', writes: '投資の総額(席代、開発、人件費、研修)、効果の回収計画(削減時間を何に変えるか、責任者)、何が起きたら止めるか', example: '席代は年1,350万円、開発と研修は別途。削減時間は残業の削減に変える(責任者は各事業部長)。利用者の割合が2四半期続けて3割未満なら席を減らす', note: 'investment', chapters: ['15-roi-and-failure', '38-meeting-pack'] },
+  { heading: '7. 投資と効果と撤退基準', writes: '投資の総額(席代、開発、人件費、研修)、効果の回収計画(削減時間を何に変えるか、責任者)、用途の撤退基準(何が起きたら止めるか)', example: '席代は年1,350万円、開発と研修は別途。削減時間は残業の削減に変える(責任者は各事業部長)。利用者の割合が2四半期続けて3割未満の部門は席を減らす', note: 'investment', chapters: ['15-roi-and-failure', '38-meeting-pack'] },
   { heading: '8. 統治の最低限', writes: 'ガイドライン、データ、ID、承認', example: 'ガイドライン策定、個人情報と図面の入力禁止、エージェントはA1まで', note: null, chapters: ['17-governance-regulation'] },
   { heading: '9. 決裁事項', writes: '本日承認してほしいこと', example: '250席の契約(年1,350万円)と、ガイドラインの公開', note: 'decisions', chapters: ['38-meeting-pack'] },
   { heading: '10. 答えていない問い', writes: '決めなかったこと、分からないこと', example: '顧客接点への適用時期、SI(システム開発会社)への依存の解消策', note: 'openQuestions', chapters: ['38-meeting-pack'] },
