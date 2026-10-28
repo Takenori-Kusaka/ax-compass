@@ -1,4 +1,4 @@
-<!-- 結果。会議体向けの資料(.sheet。本 第37章の 8 つの見出し)と、印刷・コピー・保存・復元・共有の操作(.no-print) -->
+<!-- 結果。会議体向けの資料(.sheet。本 第38章の 8 つの見出し)と、印刷・コピー・保存・復元・共有の操作(.no-print) -->
 <script lang="ts">
   import { app, replaceState } from '../store.svelte';
   import { concerns, data, evidence as allEvidence, framework, questions } from '../data';
@@ -9,6 +9,7 @@
     SHEET_HEADINGS,
     axisShort,
     buildPlan,
+    chapterUrl,
     concernReport,
     diagnose,
     earlyWarningIndicators,
@@ -110,7 +111,7 @@
 
 <h2 class="no-print">結果</h2>
 <p class="no-print">
-  経営会議に出せる資料です。見出しは本の第37章の会議資料の型(8 つの見出し)に合わせています。印刷すると、この資料だけが A4 で 1〜2 枚に出ます。Markdown のコピーは議事録や社内文書への貼り付けに、JSON は回答の保存と復元に使います。
+  経営会議に出せる資料です。見出しは本の<a href={chapterUrl(framework, '38-meeting-pack')} target="_blank" rel="noopener">第38章の会議資料の型<span class="visually-hidden">(新しいタブで開く)</span></a>(8 つの見出し)に合わせています。印刷すると、この資料だけが A4 で 1〜2 枚に出ます。Markdown のコピーは議事録や社内文書への貼り付けに、JSON は回答の保存と復元に使います。
 </p>
 
 <div class="actions no-print">
@@ -128,7 +129,7 @@
 
 <article class="sheet" aria-labelledby="sheet-title">
   <h2 id="sheet-title">AXコンパス ── 現在地と次のステップ</h2>
-  <p class="meta">{today} 作成。自己申告に基づく目安。段階の名前と定義は『{framework.book.title}』の表に、見出しは第37章の会議資料の型に従う。</p>
+  <p class="meta">{today} 作成。自己申告に基づく目安。段階の名前と定義は『{framework.book.title}』の表に、見出しは第38章の会議資料の型に従う。</p>
 
   <h3>{H[0]}</h3>
   <PositionChart {diagnosis} />

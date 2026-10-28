@@ -2,14 +2,15 @@
 <script lang="ts">
   import { app } from '../store.svelte';
   import { framework, questions } from '../data';
-  import { diagnose } from '../engine.mjs';
+  import { NOT_APPLICABLE, diagnose } from '../engine.mjs';
   import PositionChart from './PositionChart.svelte';
   import EvidenceLinks from './EvidenceLinks.svelte';
 
   const diagnosis = $derived(diagnose(framework, questions, app.answers));
 
-  /** 段階の記号(S1、C1 など)。事業フェーズは記号を持たないので省く */
+  /** 段階の記号(S1、C1 など)。事業フェーズは記号を持たず、「該当しない」は段階ではないので省く */
   function stageTag(axisId: string, value: string | number): string {
+    if (value === NOT_APPLICABLE) return '';
     if (axisId === 'adoption') return `S${value}`;
     if (axisId === 'culture') return `C${value}`;
     return '';

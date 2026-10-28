@@ -66,6 +66,8 @@ export const STATE_VERSION = 1;
 /** 「答えていない問い」の自由記述の上限(文字)。URL と localStorage に入れるため */
 export const OPEN_QUESTIONS_MAX = 2000;
 const PATH_IDS = /** @type {PathId[]} */ (['A', 'B', 'C', 'undecided']);
+/** 「該当しない」の選択肢の値。顧客向けの製品・サービスを持たない会社が、顧客向けの設問に答えるためのもの。段階の平均と最も低い答えの計算から除外する */
+export const NOT_APPLICABLE = 0;
 
 /** @returns {AppState} */
 export function createState() {
@@ -78,6 +80,7 @@ export function createState() {
 /**
  * 数値段階の軸(導入 S1〜S6、文化 C1〜C5)。回答の平均を四捨五入して段階にする。
  * 段階は累積的ではなく「目安」なので、最大値ではなく平均を使う(1 問だけ高い回答で段階が跳ねないようにする)。
+ * 「該当しない」(NOT_APPLICABLE)は回答済みとして数えるが、平均からは除外する。除外後に回答が 0 件なら S1 とする。
  * @param {Axis} axis
  * @param {Record<string, number>} answers
  */
@@ -85,7 +88,9 @@ export function scoreLevelAxis(axis, answers) {
   const values = axis.questions.map((q) => answers[q.id]).filter((v) => typeof v === 'number' && Number.isFinite(v));
   const total = axis.questions.length;
   if (values.length === 0) return { level: null, mean: null, answered: 0, total };
-  const mean = values.reduce((a, b) => a + b, 0) / values.length;
+  const counted = values.filter((v) => v !== NOT_APPLICABLE);
+  if (counted.length === 0) return { level: 1, mean: null, answered: values.length, total };
+  const mean = counted.reduce((a, b) => a + b, 0) / counted.length;
   const max = Math.max(...axis.questions.flatMap((q) => q.options.map((o) => Number(o.value))));
   const level = Math.min(max, Math.max(1, Math.round(mean)));
   return { level, mean, answered: values.length, total };
@@ -116,7 +121,7 @@ export function scoreBusiness(axis, answers, phases) {
 
 /**
  * 数値段階の軸で、最も低い答えの設問を返す。現在地は平均で決めるが、次に上げるべき場所(ボトルネック)は最も低い答えにある。
- * 同点の設問はすべて返す(設問の順)。未回答の設問は対象にしない。
+ * 同点の設問はすべて返す(設問の順)。未回答の設問と「該当しない」の設問は対象にしない。
  * @param {Axis} axis
  * @param {Record<string, number>} answers
  * @returns {{ level: number | null, items: { question: Question, value: number, label: string }[] }}
@@ -124,7 +129,7 @@ export function scoreBusiness(axis, answers, phases) {
 export function weakestAnswers(axis, answers) {
   const answered = axis.questions
     .map((q) => ({ q, v: answers[q.id] }))
-    .filter((x) => typeof x.v === 'number' && Number.isFinite(x.v));
+    .filter((x) => typeof x.v === 'number' && Number.isFinite(x.v) && x.v !== NOT_APPLICABLE);
   if (answered.length === 0) return { level: null, items: [] };
   const min = Math.min(...answered.map((x) => /** @type {number} */ (x.v)));
   const items = answered
@@ -146,7 +151,7 @@ export function weakestSummary(axis, answers, opts = {}) {
   const prefix = opts.prefix ?? axis.label.replace(/フェーズ$/, '');
   const w = weakestAnswers(axis, answers);
   if (w.level === null) return { level: null, shown: [], more: 0, allSame: false, text: '' };
-  const answered = axis.questions.filter((q) => typeof answers[q.id] === 'number').length;
+  const answered = axis.questions.filter((q) => typeof answers[q.id] === 'number' && answers[q.id] !== NOT_APPLICABLE).length;
   const allSame = w.items.length === answered && answered > 1;
   const shown = w.items.slice(0, max).map((x) => ({ no: axis.questions.indexOf(x.question) + 1, text: x.question.text }));
   const more = Math.max(0, w.items.length - shown.length);
@@ -399,7 +404,7 @@ export function earlyWarningIndicators(framework, pathId) {
   return p ? [{ group: p.name, items: p.indicators }] : [];
 }
 
-/** 会議資料の 8 つの見出し(本 第37章 手順5)。画面と Markdown で同じ順序・同じ文言を使う */
+/** 会議資料の 8 つの見出し(本 第38章 会議資料の 1 枚の型)。画面と Markdown で同じ順序・同じ文言を使う */
 export const SHEET_HEADINGS = [
   '1. 現在地',
   '2. 前提とする道筋',
@@ -433,7 +438,7 @@ export function toMarkdown(data, state) {
   const H = SHEET_HEADINGS;
   lines.push('# AXコンパス ── 現在地と次のステップ');
   lines.push('');
-  lines.push('自己申告に基づく目安です。段階の名前と定義は『AIトランスフォーメーションの設計図』の表に従います。見出しは本の第37章の会議資料の型(8 つの見出し)です。');
+  lines.push('自己申告に基づく目安です。段階の名前と定義は『AIトランスフォーメーションの設計図』の表に従います。見出しは本の第38章の会議資料の型(8 つの見出し)です。');
   lines.push('');
 
   // 1. 現在地

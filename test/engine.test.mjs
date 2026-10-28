@@ -5,7 +5,7 @@ import framework from '../src/data/framework.json' with { type: 'json' };
 import questions from '../src/data/questions.json' with { type: 'json' };
 import concernsData from '../src/data/concerns.json' with { type: 'json' };
 import evidenceData from '../src/data/evidence.json' with { type: 'json' };
-import { SHEET_HEADINGS, buildPlan, concernReport, createState, decodeState, diagnose, encodeState, governanceMinimum, parseState, scoreBusiness, scoreLevelAxis, toMarkdown, weakestAnswers, weakestSummary } from '../src/lib/engine.mjs';
+import { NOT_APPLICABLE, SHEET_HEADINGS, buildPlan, concernReport, createState, decodeState, diagnose, encodeState, governanceMinimum, parseState, scoreBusiness, scoreLevelAxis, toMarkdown, weakestAnswers, weakestSummary } from '../src/lib/engine.mjs';
 
 const data = { framework, questions, concerns: concernsData.items, evidence: evidenceData.items };
 const axis = (id) => questions.axes.find((a) => a.id === id);
@@ -21,7 +21,11 @@ function answerAll(level) {
 }
 
 test('データの整合: 設問の選択肢が段階の範囲に収まり、章の slug が対応表にある', () => {
-  for (const q of axis('adoption').questions) assert.deepEqual(q.options.map((o) => o.value), [1, 2, 3, 4, 5, 6], q.id);
+  for (const q of axis('adoption').questions) {
+    // 顧客向けの製品・サービスに関する 2 問(s5、s6)だけ「該当しない」(0)を持つ
+    const expected = ['s5', 's6'].includes(q.id) ? [1, 2, 3, 4, 5, 6, NOT_APPLICABLE] : [1, 2, 3, 4, 5, 6];
+    assert.deepEqual(q.options.map((o) => o.value), expected, q.id);
+  }
   for (const q of axis('culture').questions) assert.deepEqual(q.options.map((o) => o.value), [1, 2, 3, 4, 5], q.id);
   const phaseIds = framework.business.phases.map((p) => p.id);
   for (const q of axis('business').questions) assert.deepEqual(q.options.map((o) => o.value), phaseIds, q.id);
@@ -60,6 +64,40 @@ test('weakestAnswers: 最も低い答えの設問を、同点ならすべて設�
   assert.deepEqual(w.items.map((x) => x.question.id), ['s2', 's4']);
   assert.equal(w.items[0].label, s.questions[1].options[0].label);
   assert.deepEqual(weakestAnswers(axis('culture'), { c3: 4 }).items.map((x) => x.question.id), ['c3']);
+});
+
+test('該当しない: 平均の計算から除外し、全問が該当しないなら S1、回答済みの数には含める', () => {
+  const s = axis('adoption');
+  // s5、s6 を 1 で答えると平均 3 → S3。「該当しない」にすると 4 問の平均 4 → S4
+  assert.equal(scoreLevelAxis(s, { s1: 4, s2: 4, s3: 4, s4: 4, s5: 1, s6: 1 }).level, 3);
+  const na = scoreLevelAxis(s, { s1: 4, s2: 4, s3: 4, s4: 4, s5: NOT_APPLICABLE, s6: NOT_APPLICABLE });
+  assert.equal(na.level, 4);
+  assert.equal(na.mean, 4);
+  assert.equal(na.answered, 6, '「該当しない」も回答済みに数える(完了判定のため)');
+  // 除外後に回答が 0 件なら S1
+  assert.equal(scoreLevelAxis(s, { s5: NOT_APPLICABLE, s6: NOT_APPLICABLE }).level, 1);
+  // 全問に答えれば完了になり、現在地は S4
+  const d = diagnose(framework, questions, { business: answerAll(2).business, adoption: { s1: 4, s2: 4, s3: 4, s4: 4, s5: NOT_APPLICABLE, s6: NOT_APPLICABLE }, culture: answerAll(2).culture });
+  assert.equal(d.complete, true);
+  assert.equal(d.adoption.stage?.id, 'S4');
+  // 共有 URL と JSON の往復でも残る
+  const state = { ...createState(), answers: { ...answerAll(3), adoption: { s1: 3, s2: 3, s3: 3, s4: 3, s5: NOT_APPLICABLE, s6: NOT_APPLICABLE } } };
+  assert.equal(decodeState(encodeState(state, questions), questions)?.answers.adoption.s5, NOT_APPLICABLE);
+  assert.equal(parseState(JSON.parse(JSON.stringify(state)), questions)?.answers.adoption.s6, NOT_APPLICABLE);
+});
+
+test('該当しない: 最も低い答え(次に上げるべき場所)に出ない', () => {
+  const s = axis('adoption');
+  const w = weakestAnswers(s, { s1: 3, s2: 2, s3: 4, s4: 2, s5: NOT_APPLICABLE, s6: NOT_APPLICABLE });
+  assert.equal(w.level, 2);
+  assert.deepEqual(w.items.map((x) => x.question.id), ['s2', 's4']);
+  // 「該当しない」以外が全て同点なら「全設問が同じ段階」(該当しない設問は数に入れない)
+  const all = weakestSummary(s, { s1: 2, s2: 2, s3: 2, s4: 2, s5: NOT_APPLICABLE, s6: NOT_APPLICABLE });
+  assert.equal(all.allSame, true);
+  assert.match(all.text, /全設問が同じ段階\(S2\)/);
+  // 該当しないしか無ければ、最も低い答えは無い
+  assert.deepEqual(weakestAnswers(s, { s5: NOT_APPLICABLE }), { level: null, items: [] });
+  assert.equal(weakestSummary(s, { s5: NOT_APPLICABLE }).text, '');
 });
 
 test('事業フェーズ: 多数決と、同数なら最初の設問を優先', () => {
@@ -204,7 +242,7 @@ test('共有 URL から復元した状態は結果画面(step 4)で、自由記�
   assert.equal(decodeState(encodeState(createState(), questions), questions), null);
 });
 
-test('Markdown に本の第37章の 8 つの見出しが順に含まれる', () => {
+test('Markdown に本の第38章の 8 つの見出しが順に含まれる', () => {
   assert.equal(SHEET_HEADINGS.length, 8);
   const state = { ...createState(), answers: answerAll(2), path: 'B', concerns: ['roi'], openQuestions: '顧客接点への適用の時期' };
   const md = toMarkdown(data, state);
