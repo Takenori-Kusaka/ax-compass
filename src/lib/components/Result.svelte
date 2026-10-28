@@ -1,12 +1,13 @@
-<!-- 結果。会議体向けの資料(.sheet。本 第38章の 8 つの見出し)と、印刷・コピー・保存・復元・共有の操作(.no-print) -->
+<!-- 結果。会議体向けの資料(.sheet。本 第38章の 10 の見出し)と、印刷・コピー・保存・復元・共有の操作(.no-print)。
+     診断から導けない見出し(担当役員、投資と効果と撤退基準、決裁事項など)は自由記述の欄。個人情報を含みうるため共有 URL には入れない -->
 <script lang="ts">
   import { app, replaceState } from '../store.svelte';
   import { concerns, data, evidence as allEvidence, framework, questions } from '../data';
   import {
     INDICATOR_NOTE,
     OPEN_QUESTIONS_MAX,
-    OPEN_QUESTIONS_PLACEHOLDER,
     SHEET_HEADINGS,
+    SHEET_SECTIONS,
     axisShort,
     buildPlan,
     chapterUrl,
@@ -18,6 +19,7 @@
     parseState,
     toMarkdown,
     weakestSummary,
+    type Notes,
   } from '../engine.mjs';
   import PositionChart from './PositionChart.svelte';
   import EvidenceLinks from './EvidenceLinks.svelte';
@@ -45,6 +47,17 @@
     const ids = new Set<string>([...(plan ? PLAN_EVIDENCE : []), ...selectedConcerns.flatMap((c) => c.evidence)]);
     return allEvidence.filter((e) => ids.has(e.id));
   });
+
+  /** 自由記述の欄の読み書き(state.notes の鍵か、従来の openQuestions) */
+  type NoteKey = keyof Notes | 'openQuestions';
+  function getNote(key: NoteKey): string {
+    return key === 'openQuestions' ? app.openQuestions : app.notes[key];
+  }
+  function setNote(key: NoteKey, e: Event) {
+    const v = (e.currentTarget as HTMLTextAreaElement).value;
+    if (key === 'openQuestions') app.openQuestions = v;
+    else app.notes[key] = v;
+  }
 
   let status = $state('');
   let shareUrl = $state('');
@@ -100,7 +113,7 @@
     shareUrl = url;
     try {
       await navigator.clipboard.writeText(url);
-      status = '共有用の URL をコピーしました。回答と自由記述だけを含み、個人情報は含みません';
+      status = '共有用の URL をコピーしました。回答と道筋と悩みだけを含み、自由記述(担当役員や決裁事項など)は含みません';
     } catch {
       status = '共有用の URL を下の欄に表示しました';
     }
@@ -111,7 +124,7 @@
 
 <h2 class="no-print">結果</h2>
 <p class="no-print">
-  経営会議に出せる資料です。見出しは本の<a href={chapterUrl(framework, '38-meeting-pack')} target="_blank" rel="noopener">第38章の会議資料の型<span class="visually-hidden">(新しいタブで開く)</span></a>(8 つの見出し)に合わせています。印刷すると、この資料だけが A4 で 1〜2 枚に出ます。Markdown のコピーは議事録や社内文書への貼り付けに、JSON は回答の保存と復元に使います。
+  経営会議に出せる資料です。見出しは本の<a href={chapterUrl(framework, '38-meeting-pack')} target="_blank" rel="noopener">第38章の会議資料の型<span class="visually-hidden">(新しいタブで開く)</span></a>(10 の見出し)に合わせています。診断から導ける見出しはアプリが埋め、担当役員、投資と効果と撤退基準、決裁事項などは各社が書き足します(記入欄は端末に保存され、JSON・Markdown・印刷に含まれますが、共有用の URL には含まれません)。印刷すると、この資料だけが A4 で 1〜2 枚に出ます。Markdown のコピーは議事録や社内文書への貼り付けに、JSON は回答の保存と復元に使います。
 </p>
 
 <div class="actions no-print">
@@ -127,6 +140,29 @@
   <textarea class="share no-print" rows="3" readonly aria-label="共有用の内容">{shareUrl}</textarea>
 {/if}
 
+{#snippet noteField(i: number, label: string | null = null)}
+  {@const sec = SHEET_SECTIONS[i]}
+  {@const key = sec.note as NoteKey}
+  {@const id = `note-${key}`}
+  <div class="sheet-note">
+    {#if label}<p class="term writes"><label for={id}>{label}</label></p>{/if}
+    <p class="term writes no-print">書くこと: {sec.writes}</p>
+    <textarea
+      {id}
+      class="open-questions no-print"
+      rows="3"
+      maxlength={OPEN_QUESTIONS_MAX}
+      placeholder={`例：${sec.example}`}
+      aria-label={label ?? sec.heading}
+      value={getNote(key)}
+      oninput={(e) => setNote(key, e)}
+    ></textarea>
+    <div class="open-questions-print print-only" aria-hidden="true">
+      {#if getNote(key).trim()}{getNote(key)}{:else}(未記入)書くこと: {sec.writes}{/if}
+    </div>
+  </div>
+{/snippet}
+
 <article class="sheet" aria-labelledby="sheet-title">
   <h2 id="sheet-title">AXコンパス ── 現在地と次のステップ</h2>
   <p class="meta">{today} 作成。自己申告に基づく目安。段階の名前と定義は『{framework.book.title}』の表に、見出しは第38章の会議資料の型に従う。</p>
@@ -140,7 +176,8 @@
     <p class="weakest-label">次に上げるべき場所(最も低い答えの設問):</p>
     <ul class="weakest">{#each weakest as w}<li>{w}</li>{/each}</ul>
   {/if}
-  <EvidenceLinks chapters={['32-three-positions']} />
+  {@render noteField(0, '部門別の分布、対象とする拠点の範囲')}
+  <EvidenceLinks chapters={SHEET_SECTIONS[0].chapters} />
 
   <h3>{H[1]}</h3>
   {#if path}
@@ -163,6 +200,7 @@
       <ul>{#each g.items as ind}<li>{ind}</li>{/each}</ul>
     {/each}
     <p class="term">{INDICATOR_NOTE}</p>
+    {@render noteField(2, '現在値、担当、確認の頻度')}
     <EvidenceLinks chapters={['29-paths-comparison-indicators']} />
   {/if}
 
@@ -214,16 +252,18 @@
   {/if}
 
   <h3>{H[4]}</h3>
+  <p class="term">運営モデル</p>
   {#if plan}
     <ul>
       {#each plan.steps as s}
-        <li>ステップ {s.order}({s.stage.id}): <strong>{s.operatingModel.name}</strong> ── {s.operatingModel.definition} <span class="print-omit">{s.operatingModelReason}</span></li>
+        <li>ステップ {s.order}({s.stage.id}): <strong>{s.operatingModel.code} {s.operatingModel.name}</strong> ── {s.operatingModel.definition}。<span class="print-omit">{s.operatingModelReason}</span></li>
       {/each}
     </ul>
-    <EvidenceLinks chapters={['33-operating-model-evolution']} />
   {:else}
     <p>次の一手が決まると表示されます。</p>
   {/if}
+  {@render noteField(4, '責任を負う役員、推進の担い手')}
+  <EvidenceLinks chapters={['33-operating-model-evolution']} />
 
   <h3>{H[5]}</h3>
   {#if plan}
@@ -248,6 +288,10 @@
   {/if}
 
   <h3>{H[6]}</h3>
+  {@render noteField(6)}
+  <EvidenceLinks chapters={SHEET_SECTIONS[6].chapters} />
+
+  <h3>{H[7]}</h3>
   {#if governance}
     <p class="term">{governance.stage.id} {governance.stage.name} に合わせた最低限</p>
     <dl class="req gov">
@@ -260,19 +304,13 @@
     <p>現在地診断を終えると表示されます。</p>
   {/if}
 
-  <h3><label for="open-questions">{H[7]}</label></h3>
-  <textarea
-    id="open-questions"
-    class="open-questions no-print"
-    rows="4"
-    maxlength={OPEN_QUESTIONS_MAX}
-    placeholder={OPEN_QUESTIONS_PLACEHOLDER}
-    bind:value={app.openQuestions}
-  ></textarea>
-  <p class="term no-print">決めなかったことを書かない資料は、決めたことの範囲が分からなくなります(本 第37章)。この欄は保存・共有・Markdown・印刷に含まれます。</p>
-  <div class="open-questions-print print-only" aria-hidden="true">
-    {#if app.openQuestions.trim()}{app.openQuestions}{:else}(未記入){/if}
-  </div>
+  <h3>{H[8]}</h3>
+  {@render noteField(8)}
+  <EvidenceLinks chapters={SHEET_SECTIONS[8].chapters} />
+
+  <h3>{H[9]}</h3>
+  {@render noteField(9)}
+  <p class="term no-print">決めなかったことを書かない資料は、決めたことの範囲が分からなくなります(本 第38章)。記入欄は端末への保存・JSON・Markdown・印刷に含まれ、共有用の URL には含まれません。</p>
 
   {#if selectedConcerns.length > 0}
     <h3>補足: 悩みと対応</h3>

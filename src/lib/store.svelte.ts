@@ -1,6 +1,6 @@
 // アプリの状態は 1 つのオブジェクト。全コンポーネントがここを読み書きする。
 // localStorage への保存と URL ハッシュからの復元は App.svelte が担う(ここは DOM に触れない)。
-import { createState, type AppState } from './engine.mjs';
+import { createNotes, createState, type AppState } from './engine.mjs';
 
 export const app: AppState = $state(createState());
 
@@ -12,6 +12,7 @@ export function replaceState(next: AppState): void {
   app.path = next.path;
   app.concerns = next.concerns;
   app.openQuestions = next.openQuestions ?? '';
+  app.notes = { ...createNotes(), ...(next.notes ?? {}) };
 }
 
 export function resetState(): void {

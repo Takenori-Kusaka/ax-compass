@@ -35,16 +35,19 @@
 </script>
 
 <h2>現在地診断</h2>
-<p>3 つの軸について、いまの状態にもっとも近い選択肢を選びます。各選択肢の先頭の記号は、対応する段階です。</p>
+<p>3 つの軸について、いまの状態にもっとも近い選択肢を選びます。各選択肢の先頭の記号は、対応する段階です。問いと選択肢は、本の第32章の自己診断の表と同じ文言です。</p>
+{#if questions.guide}<p class="term">{questions.guide}</p>{/if}
 <p class="status" role="status">回答 {progress.answered} / {progress.total}</p>
 
 {#each questions.axes as axis}
   <section aria-labelledby={`axis-${axis.id}`}>
     <h3 id={`axis-${axis.id}`}>{axis.label}</h3>
     <p>{axis.intro}</p>
+    {#if axis.note}<p class="term">{axis.note}</p>{/if}
     {#each axis.questions as q, qi}
       <fieldset>
         <legend>{qi + 1}. {q.text}</legend>
+        {#if q.askTo}<p class="ask-to">誰に聞くか: {q.askTo}</p>{/if}
         <div class="options">
           {#each q.options as opt}
             <label class="option">
@@ -63,7 +66,7 @@
 <section aria-labelledby="position-heading" class="card">
   <h3 id="position-heading">現在地</h3>
   <PositionChart {diagnosis} />
-  <p class="term">診断は自己申告に基づく目安です。導入と文化は回答の平均を四捨五入した段階、事業は回答の多数決で決めています。</p>
+  <p class="term">診断は自己申告に基づく目安です。事業フェーズは 5 問で最も多く選ばれた区分(同数のときは最初の問いの答えを優先)、導入フェーズと文化フェーズは答えた段階の数字の平均を四捨五入した段階です。「該当しない」は平均から除外し、残る設問が 0 件なら S1 とします。</p>
   <EvidenceLinks chapters={['32-three-positions', '30-genai-adoption-stages', '36-culture-formation', '23-maturity-models']} />
 </section>
 

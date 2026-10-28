@@ -195,6 +195,13 @@ legend {
   padding: 0 0.4rem;
 }
 
+/* 本 第32章の表の「誰に聞くか」。取締役が自分では答えにくい問いを、誰に確かめるかの目安 */
+.ask-to {
+  color: var(--kb-color-text-secondary);
+  font-size: 0.9rem;
+  margin: 0 0 0.4rem;
+}
+
 .options {
   display: grid;
   gap: 0.4rem;
@@ -438,7 +445,8 @@ legend {
 .weakest-label { margin-bottom: 0.25em; }
 .weakest { margin-bottom: 0.5em; }
 
-/* 8. 答えていない問い: 画面では欄、印刷では書いた文をそのまま出す */
+/* 自由記述の見出し(現在地の補足、指標の現在値と担当、担当役員、投資と効果と撤退基準、決裁事項、答えていない問い): 画面では欄、印刷では書いた文をそのまま出す */
+.sheet-note .writes { margin: 0 0 0.25rem; }
 textarea.open-questions {
   width: 100%;
   font: inherit;
